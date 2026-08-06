@@ -77,11 +77,19 @@
   .stage{position:relative;height:250px;background:var(--soft);border:3px dashed var(--ink);
     border-radius:16px;overflow:hidden;margin-top:10px;}
   .part{position:absolute;touch-action:none;cursor:grab;}
-  .part svg{display:block;pointer-events:none;}
+  .partInner{display:block;pointer-events:none;}
+  .partInner svg{display:block;}
   .part.drag{z-index:9;filter:drop-shadow(0 6px 4px rgba(0,0,0,.4));}
-  .trash{position:absolute;bottom:6px;right:6px;font-size:24px;opacity:.6;background:var(--card);
-    border:2px solid var(--ink);border-radius:12px;padding:4px 8px;z-index:8;}
+  .partDel{position:absolute;top:-12px;right:-12px;width:30px;height:30px;border-radius:50%;
+    background:#E7404A;color:#fff;border:3px solid #fff;font-size:16px;font-weight:900;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:12;
+    box-shadow:0 2px 5px rgba(0,0,0,.4);touch-action:none;}
   .builderHint{font-size:12px;opacity:.7;text-align:center;margin-top:6px;}
+  .builderBtns{display:flex;gap:10px;margin-top:10px;}
+  .builderBtns button{flex:1;font-size:15px;font-weight:900;padding:12px;border:3px solid var(--ink);
+    border-radius:14px;background:var(--soft);color:var(--ink);cursor:pointer;}
+  .builderBtns button.clear{background:#E7404A;color:#fff;}
+  .builderBtns button:active{transform:translateY(2px);}
   /* look preview + colors */
   .preview{height:130px;border:3px solid var(--ink);border-radius:14px;overflow:hidden;position:relative;}
   .colorpick{display:flex;flex-wrap:wrap;gap:9px;margin-top:8px;}
@@ -104,7 +112,7 @@
 </style>
 </head>
 <body>
-<div class="badge">DESIGN QUEST · PLANNER v3</div>
+<div class="badge">DESIGN QUEST · PLANNER v4</div>
 <button class="back" id="backBtn" style="display:none">◀ Back</button>
 <div class="wrap">
 
@@ -133,8 +141,12 @@
     <div class="trayLab">Bodies</div><div class="tray" id="hTrayBody"></div>
     <div class="trayLab">Faces</div><div class="tray" id="hTrayFace"></div>
     <div class="trayLab">Extras</div><div class="tray" id="hTrayExtra"></div>
-    <div class="stage" id="heroStage"><div class="trash" id="heroTrash">🗑️</div></div>
-    <div class="builderHint">Tap a part to add. Drag to move. Tap it to recolor. Two fingers to spin/resize. Trash to remove.</div>
+    <div class="stage" id="heroStage"></div>
+    <div class="builderHint">Tap a part to add it. Drag to move. Tap a part to recolor. Two fingers to spin or resize. Tap the red ✕ to remove one.</div>
+    <div class="builderBtns">
+      <button id="heroUndo">↩️ Undo</button>
+      <button class="clear" id="heroClear">🗑️ Clear All</button>
+    </div>
     <div class="q">Their name:</div>
     <input type="text" id="heroName" placeholder="🎤 talk or type a name…">
   </div>
@@ -184,7 +196,12 @@
     <div class="trayLab">Bodies</div><div class="tray" id="bTrayBody"></div>
     <div class="trayLab">Scary Faces</div><div class="tray" id="bTrayFace"></div>
     <div class="trayLab">Scary Extras</div><div class="tray" id="bTrayExtra"></div>
-    <div class="stage" id="bossStage"><div class="trash" id="bossTrash">🗑️</div></div>
+    <div class="stage" id="bossStage"></div>
+    <div class="builderHint">Tap a part to add it. Drag to move. Tap to recolor. Two fingers to spin or resize. Tap the red ✕ to remove one.</div>
+    <div class="builderBtns">
+      <button id="bossUndo">↩️ Undo</button>
+      <button class="clear" id="bossClear">🗑️ Clear All</button>
+    </div>
     <div class="q">What does the boss DO? (pick any)</div>
     <div class="chips" id="bossAttacks"></div>
     <div class="note"><div class="noteLabel">🎤 Anything else about the boss?</div>
@@ -401,30 +418,49 @@ function partSVG(t,ci,px){ var d=PART_DEFS[t],c=COLORS[ci%COLORS.length];var w=p
 
 // ---------- shared parts builder ----------
 var uid=1;
-function buildStage(stageId,trashId,partsRef,onChange){
+function buildStage(stageId,partsRef,onChange){
   var stage=document.getElementById(stageId);
-  // remove EVERY prior part node (not just some) so deleted ghosts can't survive
   var old=stage.querySelectorAll(".part");
   for(var i=old.length-1;i>=0;i--){ old[i].remove(); }
   var W=stage.clientWidth||360,H=stage.clientHeight||250;
-  var rebuild=function(){ buildStage(stageId,trashId,partsRef,onChange); if(onChange)onChange(); };
+  var rebuild=function(){ buildStage(stageId,partsRef,onChange); if(onChange)onChange(); };
   partsRef().forEach(function(p){
     var d=PART_DEFS[p.t]; if(!d)return;
-    var el=document.createElement("div"); el.className="part"; el.innerHTML=partSVG(p.t,p.ci,d.w);
+    var el=document.createElement("div"); el.className="part";
     el.style.left=(p.x*W)+"px"; el.style.top=(p.y*H)+"px";
-    el.style.transformOrigin="center center"; el.style.transform="rotate("+(p.r||0)+"deg) scale("+(p.s||1)+")";
+    // inner holds the SVG and carries scale/rotate so the X badge stays a fixed, big target
+    var inner=document.createElement("div"); inner.className="partInner";
+    inner.innerHTML=partSVG(p.t,p.ci,d.w);
+    inner.style.transformOrigin="center center";
+    inner.style.transform="rotate("+(p.r||0)+"deg) scale("+(p.s||1)+")";
+    el.appendChild(inner);
+    var del=document.createElement("div"); del.className="partDel"; del.textContent="✕";
+    el.appendChild(del);
     stage.appendChild(el);
-    transformable(el,stage,trashId,p,d,partsRef,rebuild);
+    del.addEventListener("pointerdown",function(e){ e.stopPropagation(); e.preventDefault(); });
+    del.addEventListener("click",function(e){
+      e.stopPropagation();
+      var arr=partsRef(), idx=arr.findIndex(function(q){return q.id===p.id;});
+      if(idx>=0)arr.splice(idx,1);
+      save(); rebuild();
+    });
+    transformable(el,inner,stage,p,d,partsRef,rebuild);
   });
 }
-function addPartTo(stageId,trashId,partsRef,t,onChange){
+function addPartTo(stageId,partsRef,t,onChange){
   var stage=document.getElementById(stageId), W=stage.clientWidth||360;
   partsRef().push({id:"p"+(uid++)+"_"+Date.now(),t:t,ci:Math.floor(Math.random()*COLORS.length),
     x:0.5-(PART_DEFS[t].w/2)/W,y:0.28+Math.random()*0.18,s:1,r:0});
   save();
-  buildStage(stageId,trashId,partsRef,onChange);
+  buildStage(stageId,partsRef,onChange);
 }
-function transformable(el,stage,trashId,p,d,partsRef,onChange){
+function clearStage(stageId,partsRef,onChange){
+  var arr=partsRef(); arr.length=0; save(); buildStage(stageId,partsRef,onChange);
+}
+function undoStage(stageId,partsRef,onChange){
+  var arr=partsRef(); if(arr.length){ arr.pop(); save(); buildStage(stageId,partsRef,onChange); }
+}
+function transformable(el,inner,stage,p,d,partsRef,onChange){
   var pts={},cnt=0,gesture=null,single=null;
   function two(){var i=Object.keys(pts);return[pts[i[0]],pts[i[1]]];}
   function dist(a,b){return Math.hypot(b.x-a.x,b.y-a.y);}
@@ -440,7 +476,7 @@ function transformable(el,stage,trashId,p,d,partsRef,onChange){
     if(cnt>=2&&gesture){ var ab=two();
       p.s=Math.max(0.3,Math.min(3,gesture.s0*dist(ab[0],ab[1])/gesture.d0));
       p.r=((gesture.r0+ang(ab[0],ab[1])-gesture.a0)%360+360)%360;
-      el.style.transform="rotate("+p.r+"deg) scale("+p.s+")";
+      inner.style.transform="rotate("+p.r+"deg) scale("+p.s+")";
     } else if(cnt===1&&single){
       var dx=e.clientX-single.sx,dy=e.clientY-single.sy;
       single.moved=Math.max(single.moved,Math.abs(dx)+Math.abs(dy));
@@ -448,22 +484,13 @@ function transformable(el,stage,trashId,p,d,partsRef,onChange){
     }
     e.preventDefault();
   });
-  var removed=false;
   function rel(e){
     if(!pts[e.pointerId])return; delete pts[e.pointerId]; cnt=Math.max(0,cnt-1);
     if(cnt<2)gesture=null;
     if(cnt===0){
-      if(removed)return;
       el.classList.remove("drag");
-      if(single&&single.moved<8){ p.ci=(p.ci+1)%COLORS.length; save(); el.innerHTML=partSVG(p.t,p.ci,d.w); single=null; return; }
+      if(single&&single.moved<8){ p.ci=(p.ci+1)%COLORS.length; save(); inner.innerHTML=partSVG(p.t,p.ci,d.w); single=null; return; }
       single=null;
-      var tr=document.getElementById(trashId).getBoundingClientRect(),r=el.getBoundingClientRect();
-      var cx=r.left+r.width/2,cy=r.top+r.height/2;
-      if(cx>tr.left-14&&cx<tr.right+14&&cy>tr.top-14&&cy<tr.bottom+14){
-        var arr=partsRef(),idx=arr.findIndex(function(q){return q.id===p.id;});
-        if(idx>=0)arr.splice(idx,1);
-        removed=true; el.remove(); save(); if(onChange)onChange(); return;
-      }
       var W=stage.clientWidth||360,H=stage.clientHeight||250;
       p.x=Math.max(-0.1,Math.min(0.95,(parseFloat(el.style.left)||0)/W));
       p.y=Math.max(-0.05,Math.min(0.9,(parseFloat(el.style.top)||0)/H));
@@ -565,6 +592,7 @@ document.querySelectorAll("[data-done]").forEach(function(el){
 });
 
 // ---------- HUB + Game Sheet ----------
+function refreshHubQuiet(){ /* keep the hub Game Sheet in sync without leaving the builder */ if(document.getElementById("scr-hub").classList.contains("on")) refreshHub(); }
 function refreshHub(){
   var pr=PURE.progress(S);
   ["hero","world","journey","challenge","dream"].forEach(function(k){
@@ -597,18 +625,23 @@ function refreshHub(){
 
 // ---------- HERO ----------
 function refreshHero(){
+  var heroRef=function(){return S.hero.parts;};
   Object.keys(HERO_TRAYS).forEach(function(trayId){
     var tray=document.getElementById(trayId); if(tray.children.length)return;
     HERO_TRAYS[trayId].forEach(function(t){
       var it=document.createElement("div"); it.className="trayItem"; it.innerHTML=partSVG(t,1,50);
-      it.addEventListener("click",function(){ addPartTo("heroStage","heroTrash",function(){return S.hero.parts;},t,null); });
+      it.addEventListener("click",function(){ addPartTo("heroStage",heroRef,t,refreshHubQuiet); });
       tray.appendChild(it);
     });
   });
-  buildStage("heroStage","heroTrash",function(){return S.hero.parts;},function(){});
+  buildStage("heroStage",heroRef,refreshHubQuiet);
+  if(!document.getElementById("heroUndo")._b){
+    document.getElementById("heroUndo")._b=true;
+    document.getElementById("heroUndo").addEventListener("click",function(){ undoStage("heroStage",heroRef,refreshHubQuiet); });
+    document.getElementById("heroClear").addEventListener("click",function(){ clearStage("heroStage",heroRef,refreshHubQuiet); });
+  }
   document.getElementById("heroName").value=S.hero.name;
   renderQuestions("heroQs",PURE.HERO_Q,S.hero,function(){});
-  var noteWrap=document.createElement("div"); // append a global notes field once
   if(!document.getElementById("heroNotesField")){
     var nb=document.createElement("div"); nb.className="note";
     nb.innerHTML='<div class="noteLabel">🎤 Tell me anything else about your hero:</div>';
@@ -677,15 +710,21 @@ document.getElementById("storyBig").addEventListener("input",function(e){S.journ
 // ---------- CHALLENGE ----------
 function refreshChallenge(){
   renderQuestions("challengeQs",PURE.CHALLENGE_Q,S.challenge,function(){});
+  var bossRef=function(){return S.challenge.bossParts;};
   Object.keys(BOSS_TRAYS).forEach(function(trayId){
     var tray=document.getElementById(trayId); if(tray.children.length)return;
     BOSS_TRAYS[trayId].forEach(function(t){
       var it=document.createElement("div"); it.className="trayItem"; it.innerHTML=partSVG(t,8,50);
-      it.addEventListener("click",function(){ addPartTo("bossStage","bossTrash",function(){return S.challenge.bossParts;},t,null); });
+      it.addEventListener("click",function(){ addPartTo("bossStage",bossRef,t,refreshHubQuiet); });
       tray.appendChild(it);
     });
   });
-  buildStage("bossStage","bossTrash",function(){return S.challenge.bossParts;},function(){});
+  buildStage("bossStage",bossRef,refreshHubQuiet);
+  if(!document.getElementById("bossUndo")._b){
+    document.getElementById("bossUndo")._b=true;
+    document.getElementById("bossUndo").addEventListener("click",function(){ undoStage("bossStage",bossRef,refreshHubQuiet); });
+    document.getElementById("bossClear").addEventListener("click",function(){ clearStage("bossStage",bossRef,refreshHubQuiet); });
+  }
   var ba=document.getElementById("bossAttacks");
   if(!ba.children.length){
     PURE.BOSS_ATTACKS.forEach(function(a){
