@@ -104,7 +104,7 @@
 </style>
 </head>
 <body>
-<div class="badge">DESIGN QUEST · PLANNER v2</div>
+<div class="badge">DESIGN QUEST · PLANNER v3</div>
 <button class="back" id="backBtn" style="display:none">◀ Back</button>
 <div class="wrap">
 
@@ -403,22 +403,26 @@ function partSVG(t,ci,px){ var d=PART_DEFS[t],c=COLORS[ci%COLORS.length];var w=p
 var uid=1;
 function buildStage(stageId,trashId,partsRef,onChange){
   var stage=document.getElementById(stageId);
-  stage.querySelectorAll(".part").forEach(function(n){n.remove();});
+  // remove EVERY prior part node (not just some) so deleted ghosts can't survive
+  var old=stage.querySelectorAll(".part");
+  for(var i=old.length-1;i>=0;i--){ old[i].remove(); }
   var W=stage.clientWidth||360,H=stage.clientHeight||250;
+  var rebuild=function(){ buildStage(stageId,trashId,partsRef,onChange); if(onChange)onChange(); };
   partsRef().forEach(function(p){
     var d=PART_DEFS[p.t]; if(!d)return;
     var el=document.createElement("div"); el.className="part"; el.innerHTML=partSVG(p.t,p.ci,d.w);
     el.style.left=(p.x*W)+"px"; el.style.top=(p.y*H)+"px";
     el.style.transformOrigin="center center"; el.style.transform="rotate("+(p.r||0)+"deg) scale("+(p.s||1)+")";
     stage.appendChild(el);
-    transformable(el,stage,trashId,p,d,partsRef,onChange);
+    transformable(el,stage,trashId,p,d,partsRef,rebuild);
   });
 }
-function addPartTo(stageId,partsRef,t,onChange){
+function addPartTo(stageId,trashId,partsRef,t,onChange){
   var stage=document.getElementById(stageId), W=stage.clientWidth||360;
   partsRef().push({id:"p"+(uid++)+"_"+Date.now(),t:t,ci:Math.floor(Math.random()*COLORS.length),
     x:0.5-(PART_DEFS[t].w/2)/W,y:0.28+Math.random()*0.18,s:1,r:0});
-  save(); onChange();
+  save();
+  buildStage(stageId,trashId,partsRef,onChange);
 }
 function transformable(el,stage,trashId,p,d,partsRef,onChange){
   var pts={},cnt=0,gesture=null,single=null;
@@ -444,23 +448,26 @@ function transformable(el,stage,trashId,p,d,partsRef,onChange){
     }
     e.preventDefault();
   });
+  var removed=false;
   function rel(e){
     if(!pts[e.pointerId])return; delete pts[e.pointerId]; cnt=Math.max(0,cnt-1);
     if(cnt<2)gesture=null;
     if(cnt===0){
+      if(removed)return;
       el.classList.remove("drag");
-      if(single&&single.moved<8){ p.ci=(p.ci+1)%COLORS.length; save(); el.innerHTML=partSVG(p.t,p.ci,d.w); single=null; onChange(); return; }
+      if(single&&single.moved<8){ p.ci=(p.ci+1)%COLORS.length; save(); el.innerHTML=partSVG(p.t,p.ci,d.w); single=null; return; }
       single=null;
       var tr=document.getElementById(trashId).getBoundingClientRect(),r=el.getBoundingClientRect();
       var cx=r.left+r.width/2,cy=r.top+r.height/2;
       if(cx>tr.left-14&&cx<tr.right+14&&cy>tr.top-14&&cy<tr.bottom+14){
         var arr=partsRef(),idx=arr.findIndex(function(q){return q.id===p.id;});
-        if(idx>=0)arr.splice(idx,1); save(); onChange(); return;
+        if(idx>=0)arr.splice(idx,1);
+        removed=true; el.remove(); save(); if(onChange)onChange(); return;
       }
       var W=stage.clientWidth||360,H=stage.clientHeight||250;
       p.x=Math.max(-0.1,Math.min(0.95,(parseFloat(el.style.left)||0)/W));
       p.y=Math.max(-0.05,Math.min(0.9,(parseFloat(el.style.top)||0)/H));
-      save(); onChange();
+      save();
     }
   }
   el.addEventListener("pointerup",rel); el.addEventListener("pointercancel",rel);
@@ -594,7 +601,7 @@ function refreshHero(){
     var tray=document.getElementById(trayId); if(tray.children.length)return;
     HERO_TRAYS[trayId].forEach(function(t){
       var it=document.createElement("div"); it.className="trayItem"; it.innerHTML=partSVG(t,1,50);
-      it.addEventListener("click",function(){ addPartTo("heroStage",function(){return S.hero.parts;},t,function(){ buildStage("heroStage","heroTrash",function(){return S.hero.parts;},function(){}); }); });
+      it.addEventListener("click",function(){ addPartTo("heroStage","heroTrash",function(){return S.hero.parts;},t,null); });
       tray.appendChild(it);
     });
   });
@@ -674,7 +681,7 @@ function refreshChallenge(){
     var tray=document.getElementById(trayId); if(tray.children.length)return;
     BOSS_TRAYS[trayId].forEach(function(t){
       var it=document.createElement("div"); it.className="trayItem"; it.innerHTML=partSVG(t,8,50);
-      it.addEventListener("click",function(){ addPartTo("bossStage",function(){return S.challenge.bossParts;},t,function(){ buildStage("bossStage","bossTrash",function(){return S.challenge.bossParts;},function(){}); }); });
+      it.addEventListener("click",function(){ addPartTo("bossStage","bossTrash",function(){return S.challenge.bossParts;},t,null); });
       tray.appendChild(it);
     });
   });
