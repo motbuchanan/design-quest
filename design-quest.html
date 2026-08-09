@@ -108,11 +108,47 @@
     font-family:ui-monospace,Menlo,Consolas,monospace;}
   .row{display:flex;gap:10px;}.row>*{flex:1;}
   .confetti{position:fixed;top:-20px;font-size:22px;z-index:99;pointer-events:none;}
+  /* rated option cards (powers/enemies/traps/boss moves) */
+  .optCard{background:var(--soft);border:3px solid var(--ink);border-radius:14px;padding:10px;margin:8px 0;}
+  .optTop{display:flex;align-items:center;gap:8px;}
+  .optName{flex:1;text-align:left;font-size:14.5px;font-weight:900;padding:10px;border:3px solid var(--ink);
+    border-radius:12px;background:var(--card);color:var(--ink);cursor:pointer;}
+  .optName.sel{background:var(--accent);color:#fff;}
+  .tryBtn{flex:0 0 auto;font-size:14px;font-weight:900;padding:10px 14px;border:3px solid var(--ink);
+    border-radius:12px;background:var(--accent2);color:var(--bg1);cursor:pointer;white-space:nowrap;}
+  .optStars{display:flex;gap:6px;margin-top:8px;justify-content:center;font-size:26px;color:#5b6b9c;cursor:pointer;}
+  .optStars span.on{color:var(--accent2);}
+  .optHint{font-size:11px;opacity:.6;text-align:center;margin-top:2px;}
+  /* playground overlay */
+  .pgOverlay{position:fixed;inset:0;z-index:200;
+    background:linear-gradient(180deg,#0B1424,#18294A);display:flex;flex-direction:column;}
+  .pgTop{display:flex;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 14px 8px;gap:10px;}
+  .pgTitle{flex:1;font-size:20px;font-weight:900;color:var(--accent2);}
+  .pgClose{width:40px;height:40px;border-radius:50%;border:3px solid var(--ink);background:var(--card);
+    color:var(--ink);font-size:18px;font-weight:900;cursor:pointer;}
+  .pgTip{text-align:center;font-size:14px;font-weight:700;padding:0 16px 8px;opacity:.95;min-height:20px;}
+  .pgStageWrap{flex:1;min-height:0;margin:0 10px;border:3px solid var(--ink);border-radius:14px;overflow:hidden;background:#0B1424;}
+  #pgCanvas{display:block;width:100%;height:100%;}
+  .pgControls{display:flex;justify-content:space-between;align-items:flex-end;padding:8px calc(14px + env(safe-area-inset-right)) 6px calc(14px + env(safe-area-inset-left));}
+  .pgPad{display:flex;gap:10px;}
+  .pgBtn{width:62px;height:62px;border-radius:16px;border:3px solid var(--ink);background:rgba(42,55,95,.85);
+    color:var(--ink);font-size:24px;font-weight:900;cursor:pointer;touch-action:none;}
+  .pgBtn.held{background:var(--accent);}
+  .pgBtn.pgJump{width:76px;height:76px;border-radius:50%;background:rgba(79,163,227,.9);}
+  .pgBtn.pgAction{width:76px;height:76px;border-radius:50%;background:rgba(255,201,74,.9);color:var(--bg1);font-size:15px;}
+  .pgRate{background:var(--card);border-top:3px solid var(--ink);padding:10px 14px calc(12px + env(safe-area-inset-bottom));text-align:center;}
+  .pgRateQ{font-size:14px;font-weight:800;margin-bottom:4px;}
+  .pgStars{font-size:40px;color:#5b6b9c;display:flex;justify-content:center;gap:14px;}
+  .pgStars span{cursor:pointer;}
+  .pgStars span.on{color:var(--accent2);}
+  .pgDone{margin-top:8px;background:var(--good);color:#0A2A16;border:3px solid var(--ink);border-radius:14px;
+    font-size:17px;font-weight:900;padding:12px 30px;cursor:pointer;}
+  .hidden{display:none !important;}
   .mini{font-size:12px;opacity:.65;text-align:center;margin-top:8px;}
 </style>
 </head>
 <body>
-<div class="badge">DESIGN QUEST · PLANNER v4</div>
+<div class="badge">DESIGN QUEST · PLANNER v6</div>
 <button class="back" id="backBtn" style="display:none">◀ Back</button>
 <div class="wrap">
 
@@ -126,6 +162,7 @@
   <div class="chap" data-nav="scr-journey"><div class="ic">📖</div><div><div class="t">The Journey</div><div class="d">What's the adventure?</div></div><div class="prog" id="prog-journey">○</div></div>
   <div class="chap" data-nav="scr-challenge"><div class="ic">⚔️</div><div><div class="t">The Challenges</div><div class="d">Enemies, powers, traps, boss</div></div><div class="prog" id="prog-challenge">○</div></div>
   <div class="chap" data-nav="scr-dream"><div class="ic">💭</div><div><div class="t">Your Dream</div><div class="d">The COOLEST stuff you imagine!</div></div><div class="prog" id="prog-dream">○</div></div>
+  <div class="chap" data-nav="scr-learn"><div class="ic">🧠</div><div><div class="t">Brain Boosts</div><div class="d">Want to sneak in some math?</div></div><div class="prog" id="prog-learn">○</div></div>
   <div class="hubbtns">
     <button class="bigbtn alt" id="dadBtn">SHOW DAD 📋</button>
   </div>
@@ -202,8 +239,8 @@
       <button id="bossUndo">↩️ Undo</button>
       <button class="clear" id="bossClear">🗑️ Clear All</button>
     </div>
-    <div class="q">What does the boss DO? (pick any)</div>
-    <div class="chips" id="bossAttacks"></div>
+    <div class="q">What does the boss DO? Try each move and rate it!</div>
+    <div id="bossAttacks"></div>
     <div class="note"><div class="noteLabel">🎤 Anything else about the boss?</div>
       <input type="text" id="bossNote" placeholder="talk or type here…"></div>
   </div>
@@ -231,6 +268,38 @@
   </div>
   <div class="doneToggle" data-done="dream"><span>✔</span> I dreamed it all up!</div>
   <button class="bigbtn" id="dreamBack">◀ BACK TO MY GAME</button>
+</div>
+
+<!-- LEARN (Brain Boosts) -->
+<div class="screen" id="scr-learn">
+  <h1>Brain Boosts</h1>
+  <p class="sub">Want your game to secretly make you smarter? You choose! Math can be part of the fun.</p>
+  <div class="card" id="learnQs"></div>
+  <div class="card">
+    <div class="q">🎤 Any other smart stuff you want to learn while playing?</div>
+    <input type="text" id="learnNotes" placeholder="talk or type here… (math, reading, anything!)">
+  </div>
+  <div class="doneToggle" data-done="learn"><span>✔</span> I picked my brain boosts!</div>
+  <button class="bigbtn" id="learnBack">◀ BACK TO MY GAME</button>
+</div>
+
+<!-- PLAYGROUND OVERLAY -->
+<div id="pgOverlay" class="pgOverlay hidden">
+  <div class="pgTop">
+    <div class="pgTitle" id="pgTitle">Try it!</div>
+    <button class="pgClose" id="pgClose">✕</button>
+  </div>
+  <div class="pgTip" id="pgTip"></div>
+  <div class="pgStageWrap"><canvas id="pgCanvas"></canvas></div>
+  <div class="pgControls" id="pgControls">
+    <div class="pgPad"><button class="pgBtn" id="pgLeft">◀</button><button class="pgBtn" id="pgRight">▶</button></div>
+    <div class="pgPad"><button class="pgBtn pgAction hidden" id="pgAction">GO</button><button class="pgBtn pgJump" id="pgJump">⤒</button></div>
+  </div>
+  <div class="pgRate">
+    <div class="pgRateQ">How much do you like it?</div>
+    <div class="pgStars" id="pgStars"><span data-s="1">☆</span><span data-s="2">☆</span><span data-s="3">☆</span></div>
+    <button class="pgDone" id="pgDone">✔ DONE</button>
+  </div>
 </div>
 
 <!-- DAD -->
@@ -277,6 +346,11 @@ var PURE = {
   ],
   BOSS_ATTACKS: ["charges at you","big jumps","throws stuff","splits in two","stomps the ground","spins fast","shoots beams","calls helpers"],
   DREAM_SEEDS: ["a giant monster","a secret room","a surprise friend","a magic power-up","a huge race","a hidden world","a boss with a twist","a special pet"],
+  LEARN_Q:[
+    {k:"want",q:"Do you want to LEARN MATH while you play?",opts:["Yes! Sneak it in","Maybe a little","No thanks, just fun"],single:true},
+    {k:"kinds",q:"What math do you want in your game?",opts:["Multiples (counting by 2s, 5s, 10s)","Division (sharing into equal groups)","Both!","Adding and taking away"],multi:true},
+    {k:"systems",q:"How should math show up in your game? (it's part of the game!)",opts:["Collect stars in GROUPS (like 3s or 5s)","SHARE treasure with your friends","Math DOORS that open with the answer","SPLIT enemies into equal groups","A COMBO counter that counts up","Power-ups that need the right number"],multi:true}
+  ],
   COLORS: ["#E75480","#4FA3E3","#4CBB4C","#FFC23E","#8E5BD9","#2FBFAE","#F07830","#FF6FA8","#FFFFFF"],
   BODY_TYPES: ["blob","ball","box","bean"],
   MOODS: {
@@ -292,9 +366,61 @@ var PURE = {
       world:{place:null,mood:null,beautiful:null,dangerous:null,artStyle:null,glow:null,color:null,notes:""},
       journey:{start:null,meet:null,problem:null,chasing:null,ending:null,story:""},
       challenge:{enemies:[],powers:[],hazards:[],bossParts:[],bossAttacks:[],bossNote:""},
+      ratings:{powers:{},enemies:{},hazards:{},bossAttacks:{}},
+      learn:{want:null,kinds:[],systems:[],notes:""},
       dream:{cool:"",add:"",secret:""},
-      done:{hero:false,world:false,journey:false,challenge:false,dream:false}
+      done:{hero:false,world:false,journey:false,challenge:false,dream:false,learn:false}
     };
+  },
+  // playable demo configs, keyed by the exact chip label
+  POWER_DEMOS:{
+    "double jump":{title:"Double Jump",tip:"Jump, then JUMP again in the air to reach the high ledge!",power:"double_jump",scene:"ledge"},
+    "super dash":{title:"Super Dash",tip:"Tap DASH to zoom across the big gap!",power:"dash",action:"DASH",scene:"gap"},
+    "glide/fly":{title:"Glide",tip:"Jump, then HOLD jump to float slowly across!",power:"glide",scene:"pit"},
+    "ground smash":{title:"Ground Smash",tip:"Jump up, then tap SMASH to break the block!",power:"smash",action:"SMASH",scene:"block"},
+    "shoot fireballs":{title:"Fireball",tip:"Tap FIRE to shoot the target!",power:"fireball",action:"FIRE",scene:"target"},
+    "force shield":{title:"Force Shield",tip:"Tap SHIELD to be safe, then walk over the spikes!",power:"shield",action:"SHIELD",scene:"spikes"},
+    "climb walls":{title:"Wall Climb",tip:"Jump at the wall and hold toward it to climb up!",power:"wall_climb",scene:"wall"},
+    "swim fast":{title:"Swim",tip:"Jump into the water and swim across!",power:"swim",scene:"water"}
+  },
+  ENEMY_DEMOS:{
+    "spiky balls":{title:"Spiky Ball",tip:"Ouch, spiky! Don't touch it. Try to get past!",behavior:"patrol",spiky:true},
+    "grumpy slimes":{title:"Grumpy Slime",tip:"Jump on top to squish it! (BOP works too.)",behavior:"patrol"},
+    "shadow blobs":{title:"Shadow Blob",tip:"Stomp it or BOP it!",behavior:"patrol"},
+    "ghost critters":{title:"Ghost Critter",tip:"It floats! Time your jump to get past.",behavior:"float"},
+    "robot bugs":{title:"Robot Bug",tip:"Fast! Stomp it or BOP it.",behavior:"fast"},
+    "flying bats":{title:"Flying Bat",tip:"It swoops at you! Dodge or BOP it.",behavior:"swoop"}
+  },
+  TRAP_DEMOS:{
+    "spikes":{title:"Spikes",tip:"Pointy! Jump over them.",trap:"spikes"},
+    "pits":{title:"Pits",tip:"Don't fall in! Jump across.",trap:"pit"},
+    "lava":{title:"Lava",tip:"Hot! Jump over the lava.",trap:"lava"},
+    "spinny saws":{title:"Spinny Saw",tip:"It spins and moves. Time your jump!",trap:"saw"},
+    "crushers":{title:"Crusher",tip:"It slams down! Run under when it lifts.",trap:"crusher"},
+    "moving floors":{title:"Moving Floor",tip:"Ride the moving platform across!",trap:"movingP"},
+    "slippery ice":{title:"Slippery Ice",tip:"Whoa, slippery! Try to stop.",trap:"ice"},
+    "dark rooms":{title:"Dark Room",tip:"Can't see much! Feel your way across.",trap:"dark"}
+  },
+  BOSS_DEMOS:{
+    "charges at you":{title:"Charge Attack",tip:"The boss charges! Jump over it.",attack:"charge"},
+    "big jumps":{title:"Big Jump",tip:"The boss jumps high and lands hard. Move away!",attack:"jump"},
+    "throws stuff":{title:"Throw Attack",tip:"Dodge the stuff it throws!",attack:"throw"},
+    "splits in two":{title:"Split",tip:"It splits into two! Dodge both.",attack:"split"},
+    "stomps the ground":{title:"Ground Stomp",tip:"It stomps! Jump when the shockwave comes.",attack:"stomp"},
+    "spins fast":{title:"Spin Attack",tip:"It spins around fast. Keep away!",attack:"spin"},
+    "shoots beams":{title:"Beam Attack",tip:"Jump over the beams!",attack:"beam"},
+    "calls helpers":{title:"Call Helpers",tip:"It calls little helpers. Dodge them!",attack:"helpers"}
+  },
+  ratingLabel:function(r){ return r>=3?"LOVED":r===2?"liked":r===1?"ok":""; },
+  favorites:function(S){
+    var out={};
+    ["powers","enemies","hazards","bossAttacks"].forEach(function(cat){
+      var m=S.ratings[cat]||{}, arr=[];
+      for(var k in m){ if(m[k]>0) arr.push({name:k,r:m[k]}); }
+      arr.sort(function(a,b){return b.r-a.r;});
+      out[cat]=arr;
+    });
+    return out;
   },
   normalizeParts:function(parts){
     if(!Array.isArray(parts))return [];
@@ -319,6 +445,9 @@ var PURE = {
     }
     d.hero.parts=this.normalizeParts(d.hero.parts);
     d.challenge.bossParts=this.normalizeParts(d.challenge.bossParts);
+    if(!d.ratings)d.ratings={powers:{},enemies:{},hazards:{},bossAttacks:{}};
+    ["powers","enemies","hazards","bossAttacks"].forEach(function(c){ if(!d.ratings[c])d.ratings[c]={}; });
+    if(!d.learn)d.learn={want:null,kinds:[],systems:[],notes:""};
     return d;
   },
   hasBody:function(parts){ for(var i=0;i<parts.length;i++){ if(this.BODY_TYPES.indexOf(parts[i].t)>=0) return true; } return false; },
@@ -330,7 +459,8 @@ var PURE = {
       world: frac([S.world.place,S.world.mood,S.world.beautiful,S.world.dangerous,S.world.artStyle,S.world.color]),
       journey: frac([S.journey.start,S.journey.meet,S.journey.problem,S.journey.chasing,S.journey.ending,S.journey.story]),
       challenge: frac([S.challenge.enemies,S.challenge.powers,S.challenge.hazards,this.hasBody(S.challenge.bossParts)]),
-      dream: frac([S.dream.cool,S.dream.add,S.dream.secret])
+      dream: frac([S.dream.cool,S.dream.add,S.dream.secret]),
+      learn: frac([S.learn.want,S.learn.kinds,S.learn.systems])
     };
   },
   progIcon:function(f,done){
@@ -377,10 +507,27 @@ var PURE = {
     L.push("  Boss: built from "+S.challenge.bossParts.length+" parts; does: "+(S.challenge.bossAttacks.join(", ")||"?"));
     if(S.challenge.bossNote) L.push("  Boss notes: "+S.challenge.bossNote);
     L.push("");
+    L.push("WHAT HE ACTUALLY LIKED (played & rated — use this to prioritize!)");
+    var fav=PURE.favorites(S);
+    var catName={powers:"Powers",enemies:"Enemies",hazards:"Traps",bossAttacks:"Boss moves"};
+    ["powers","enemies","hazards","bossAttacks"].forEach(function(cat){
+      if(fav[cat].length){
+        L.push("  "+catName[cat]+":");
+        fav[cat].forEach(function(it){ L.push("    "+["","⭐","⭐⭐","⭐⭐⭐"][it.r]+" "+PURE.ratingLabel(it.r)+" — "+it.name); });
+      }
+    });
+    if(!["powers","enemies","hazards","bossAttacks"].some(function(c){return fav[c].length;})) L.push("  (nothing rated yet)");
+    L.push("");
     L.push("HIS DREAM  "+(S.done.dream?"✅":""));
     if(S.dream.cool) L.push("  Coolest thing: "+S.dream.cool);
     if(S.dream.add) L.push("  Would add: "+S.dream.add);
     if(S.dream.secret) L.push("  Secret/surprise: "+S.dream.secret);
+    L.push("");
+    L.push("LEARNING — optional math built into the game systems  "+(S.done.learn?"✅":""));
+    L.push("  Wants math in the game: "+(S.learn.want||"?"));
+    L.push("  Kinds of math: "+(S.learn.kinds.join(", ")||"?"));
+    L.push("  Show up as: "+(S.learn.systems.join(", ")||"?"));
+    if(S.learn.notes) L.push("  His words: "+S.learn.notes);
     L.push("");
     L.push("raw: "+JSON.stringify(S));
     return L.join("\n");
@@ -577,11 +724,12 @@ function show(id){
   if(id==="scr-journey")refreshJourney();
   if(id==="scr-challenge")refreshChallenge();
   if(id==="scr-dream")refreshDream();
+  if(id==="scr-learn")refreshLearn();
   window.scrollTo(0,0);
 }
 backBtn.addEventListener("click",function(){ show("scr-hub"); });
 document.querySelectorAll("[data-nav]").forEach(function(el){ el.addEventListener("click",function(){ show(el.getAttribute("data-nav")); }); });
-["hero","world","journey","challenge","dream"].forEach(function(k){
+["hero","world","journey","challenge","dream","learn"].forEach(function(k){
   document.getElementById(k+"Back").addEventListener("click",function(){ confetti(); show("scr-hub"); });
 });
 document.querySelectorAll("[data-done]").forEach(function(el){
@@ -595,7 +743,7 @@ document.querySelectorAll("[data-done]").forEach(function(el){
 function refreshHubQuiet(){ /* keep the hub Game Sheet in sync without leaving the builder */ if(document.getElementById("scr-hub").classList.contains("on")) refreshHub(); }
 function refreshHub(){
   var pr=PURE.progress(S);
-  ["hero","world","journey","challenge","dream"].forEach(function(k){
+  ["hero","world","journey","challenge","dream","learn"].forEach(function(k){
     document.getElementById("prog-"+k).textContent=PURE.progIcon(pr[k],S.done[k]);
   });
   var sheet=document.getElementById("gameSheet"); sheet.innerHTML="";
@@ -621,6 +769,7 @@ function refreshHub(){
     PURE.hasBody(S.challenge.bossParts)?"a boss":""
   ].filter(Boolean).join(", "), "not made yet"));
   sheet.appendChild(row("Dream", S.dream.cool, "not made yet"));
+  sheet.appendChild(row("Brain", S.learn.want?(S.learn.want+(S.learn.kinds.length?" ("+S.learn.kinds.length+" math)":"")):"", "not picked yet"));
 }
 
 // ---------- HERO ----------
@@ -708,8 +857,60 @@ function refreshJourney(){
 document.getElementById("storyBig").addEventListener("input",function(e){S.journey.story=e.target.value;save();});
 
 // ---------- CHALLENGE ----------
+// renders option cards with a Try-it playable demo + star rating; pick state mirrors the array
+function renderRated(containerId, options, pickArr, cat, demoTable){
+  var c=document.getElementById(containerId); c.innerHTML="";
+  options.forEach(function(name){
+    var card=document.createElement("div"); card.className="optCard";
+    var top=document.createElement("div"); top.className="optTop";
+    var nameBtn=document.createElement("button"); nameBtn.className="optName"+(pickArr.indexOf(name)>=0?" sel":"");
+    nameBtn.textContent=name;
+    nameBtn.addEventListener("click",function(){
+      var i=pickArr.indexOf(name); if(i>=0)pickArr.splice(i,1); else pickArr.push(name);
+      save(); nameBtn.classList.toggle("sel"); refreshHubQuiet();
+    });
+    var tryBtn=document.createElement("button"); tryBtn.className="tryBtn"; tryBtn.textContent="▶ Try";
+    var demo=demoTable[name];
+    tryBtn.addEventListener("click",function(){
+      if(!demo)return;
+      PG.open(demo,cat,name,function(){
+        // rating implies the item is "in": ensure it's picked
+        if(pickArr.indexOf(name)<0){ pickArr.push(name); nameBtn.classList.add("sel"); }
+        paintOptStars(stars,(S.ratings[cat]&&S.ratings[cat][name])||0);
+        save(); refreshHubQuiet();
+      });
+    });
+    top.appendChild(nameBtn); top.appendChild(tryBtn);
+    var stars=document.createElement("div"); stars.className="optStars";
+    [1,2,3].forEach(function(v){ var sp=document.createElement("span"); sp.setAttribute("data-s",v);
+      sp.addEventListener("click",function(){ S.ratings[cat][name]=v; if(pickArr.indexOf(name)<0){pickArr.push(name);nameBtn.classList.add("sel");}
+        save(); paintOptStars(stars,v); refreshHubQuiet(); });
+      stars.appendChild(sp); });
+    paintOptStars(stars,(S.ratings[cat]&&S.ratings[cat][name])||0);
+    var hint=document.createElement("div"); hint.className="optHint"; hint.textContent="Play it, then give it stars!";
+    card.appendChild(top); card.appendChild(stars); card.appendChild(hint);
+    c.appendChild(card);
+  });
+}
+function paintOptStars(el,n){ el.querySelectorAll("span").forEach(function(s){ var v=parseInt(s.getAttribute("data-s"),10);
+  s.textContent=v<=n?"★":"☆"; s.classList.toggle("on",v<=n); }); }
+
 function refreshChallenge(){
-  renderQuestions("challengeQs",PURE.CHALLENGE_Q,S.challenge,function(){});
+  // section headers + rated cards for the three multi categories
+  var host=document.getElementById("challengeQs");
+  if(!host._built){
+    host._built=true; host.innerHTML="";
+    host.appendChild(mkQ("What are the ENEMIES like? Try each one!"));
+    var eDiv=document.createElement("div"); eDiv.id="rateEnemies"; host.appendChild(eDiv);
+    host.appendChild(mkQ("What POWERS can you get? Try them out!"));
+    var pDiv=document.createElement("div"); pDiv.id="ratePowers"; host.appendChild(pDiv);
+    host.appendChild(mkQ("What TRAPS are in the levels? Try each!"));
+    var hDiv=document.createElement("div"); hDiv.id="rateHazards"; host.appendChild(hDiv);
+  }
+  renderRated("rateEnemies", PURE.CHALLENGE_Q[0].opts, S.challenge.enemies, "enemies", PURE.ENEMY_DEMOS);
+  renderRated("ratePowers", PURE.CHALLENGE_Q[1].opts, S.challenge.powers, "powers", PURE.POWER_DEMOS);
+  renderRated("rateHazards", PURE.CHALLENGE_Q[2].opts, S.challenge.hazards, "hazards", PURE.TRAP_DEMOS);
+
   var bossRef=function(){return S.challenge.bossParts;};
   Object.keys(BOSS_TRAYS).forEach(function(trayId){
     var tray=document.getElementById(trayId); if(tray.children.length)return;
@@ -725,22 +926,12 @@ function refreshChallenge(){
     document.getElementById("bossUndo").addEventListener("click",function(){ undoStage("bossStage",bossRef,refreshHubQuiet); });
     document.getElementById("bossClear").addEventListener("click",function(){ clearStage("bossStage",bossRef,refreshHubQuiet); });
   }
-  var ba=document.getElementById("bossAttacks");
-  if(!ba.children.length){
-    PURE.BOSS_ATTACKS.forEach(function(a){
-      var b=document.createElement("div"); b.className="chip"; b.textContent=a;
-      b.addEventListener("click",function(){
-        var arr=S.challenge.bossAttacks, i=arr.indexOf(a);
-        if(i>=0)arr.splice(i,1); else arr.push(a);
-        save(); b.classList.toggle("sel");
-      });
-      ba.appendChild(b);
-    });
-  }
-  ba.querySelectorAll(".chip").forEach(function(b){ b.classList.toggle("sel",S.challenge.bossAttacks.indexOf(b.textContent)>=0); });
+  // boss attacks as rated cards (Try shows the attack)
+  renderRated("bossAttacks", PURE.BOSS_ATTACKS, S.challenge.bossAttacks, "bossAttacks", PURE.BOSS_DEMOS);
   document.getElementById("bossNote").value=S.challenge.bossNote;
   document.querySelector('[data-done="challenge"]').classList.toggle("on",S.done.challenge);
 }
+function mkQ(text){ var d=document.createElement("div"); d.className="q"; d.textContent=text; return d; }
 document.getElementById("bossNote").addEventListener("input",function(e){S.challenge.bossNote=e.target.value;save();});
 
 // ---------- DREAM ----------
@@ -765,6 +956,18 @@ document.getElementById("dreamCool").addEventListener("input",function(e){S.drea
 document.getElementById("dreamAdd").addEventListener("input",function(e){S.dream.add=e.target.value;save();});
 document.getElementById("dreamSecret").addEventListener("input",function(e){S.dream.secret=e.target.value;save();});
 
+// ---------- LEARN (Brain Boosts) ----------
+function refreshLearn(){
+  renderQuestions("learnQs",PURE.LEARN_Q,S.learn,function(){ refreshHubQuiet(); });
+  if(!document.getElementById("learnNotesField")){
+    var host=document.getElementById("learnNotes");
+    host.id="learnNotesField";
+    host.value=S.learn.notes;
+    host.addEventListener("input",function(e){S.learn.notes=e.target.value;save();});
+  }
+  document.querySelector('[data-done="learn"]').classList.toggle("on",S.done.learn);
+}
+
 // ---------- DAD ----------
 function showDad(){ document.getElementById("dadText").textContent=PURE.summary(S); show("scr-dad"); }
 document.getElementById("dadBtn").addEventListener("click",showDad);
@@ -772,6 +975,279 @@ document.getElementById("copyBtn").addEventListener("click",function(){
   var t=PURE.summary(S);
   if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(t); this.textContent="Copied ✔"; }
 });
+
+// ---------- PLAYGROUND (playable "Try it" demos) ----------
+var PG=(function(){
+  var TILE=36;
+  var jH=3.0*TILE, apexF=21, gUp=2*jH/(apexF*apexF);
+  var C={tile:TILE,gUp:gUp,gDown:gUp*1.6,jumpV:-(2*jH/apexF),hangMult:0.5,hangBand:1.6,jumpCut:0.5,
+    coyote:9,buffer:9,maxFall:10,maxRun:4.4,aG:0.68,aA:0.55,turn:1.35,fric:0.87,drag:0.965,pw:22,ph:26};
+  var cv,ctx,raf=null,running=false,acc=0,lastT=0;
+  var demo=null,cat=null,itemName=null,onRate=null;
+  var P,cam,things,parts2,msg,heroCol,tSpr=0;
+  var IN={left:false,right:false,jump:false,jumpHeld:false,action:false,actionEdge:false};
+  function el(id){return document.getElementById(id);}
+  // level grid helpers (string rows, '#'=solid, '='=oneway, '^'=spike, 'W'=water, 'L'=lava, '~'=ice)
+  var LV;
+  function solid(px,py){ var tx=Math.floor(px/TILE),ty=Math.floor(py/TILE);
+    if(tx<0||tx>=LV[0].length)return "#"; if(ty<0||ty>=LV.length)return "."; return LV[ty][tx]; }
+  function isWall(c){return c==="#"||c==="~";}
+  function isOne(c){return c==="=";}
+  function setup(){
+    // base flat scene: 16 wide x 9 tall, floor rows 7-8
+    var W=18,H=9,g=[];
+    for(var y=0;y<H;y++)g.push(new Array(W).fill("."));
+    function fl(x0,x1){for(var x=x0;x<=x1;x++){g[7][x]="#";g[8][x]="#";}}
+    fl(0,W-1);
+    things={enemies:[],projectiles:[],targets:[],blocks:[],boss:null,items:[],saw:null,crusher:null,mover:null,dark:false,water:null,lava:null,ice:null};
+    parts2={power:null,dbl:false,jumps:0,dashCd:0,shield:0,climbing:false};
+    msg="";
+    var d=demo;
+    if(d.power){
+      parts2.power=d.power;
+      if(d.scene==="ledge"){ for(var x=11;x<=17;x++){g[4][x]="#";g[5][x]="#";g[6][x]="#";g[7][x]="#";g[8][x]="#";} g[3][15]="S"; }
+      else if(d.scene==="gap"){ for(var x=6;x<=12;x++){g[7][x]=".";g[8][x]=".";} }
+      else if(d.scene==="pit"){ for(var x=5;x<=13;x++){g[7][x]=".";g[8][x]=".";} }
+      else if(d.scene==="block"){ g[6][9]="B"; g[6][10]="B"; }
+      else if(d.scene==="target"){ things.targets.push({x:15*TILE,y:6*TILE,hit:false}); }
+      else if(d.scene==="spikes"){ for(var x=8;x<=12;x++)g[6][x]="^"; }
+      else if(d.scene==="wall"){ for(var y=2;y<=6;y++){g[y][12]="#";} }
+      else if(d.scene==="water"){ for(var x=6;x<=12;x++){g[7][x]="W";g[8][x]="W";} things.water={x0:6,x1:12}; }
+    }
+    if(d.behavior){ // enemy demo
+      var e={x:12*TILE,y:6*TILE,w:30,h:30,vx:-1.2,alive:true,beh:d.behavior,spiky:!!d.spiky,ph:0,baseY:6*TILE};
+      if(d.behavior==="fast")e.vx=-2.2;
+      things.enemies.push(e);
+    }
+    if(d.trap){
+      if(d.trap==="spikes"){ for(var x=8;x<=12;x++)g[6][x]="^"; }
+      else if(d.trap==="pit"){ for(var x=7;x<=11;x++){g[7][x]=".";g[8][x]=".";} }
+      else if(d.trap==="lava"){ for(var x=7;x<=11;x++){g[7][x]="L";g[8][x]="L";} things.lava={x0:7,x1:11}; }
+      else if(d.trap==="saw"){ things.saw={x:10*TILE,y:6.2*TILE,a:0,x0:7*TILE,x1:13*TILE,dir:1}; }
+      else if(d.trap==="crusher"){ things.crusher={x:10*TILE,y:0,ph:0}; }
+      else if(d.trap==="movingP"){ for(var x=6;x<=12;x++){g[7][x]=".";g[8][x]=".";} things.mover={x:6*TILE,y:6.5*TILE,dir:1,x0:6*TILE,x1:12*TILE}; }
+      else if(d.trap==="ice"){ for(var x=5;x<=13;x++){g[7][x]="~";} }
+      else if(d.trap==="dark"){ things.dark=true; }
+    }
+    if(d.attack){ things.boss={x:13*TILE,y:5*TILE,w:52,h:52,vy:0,onG:false,attack:d.attack,t:0,dir:-1,ph:0}; }
+    LV=g;
+    P={x:2*TILE,y:6*TILE,w:C.pw,h:C.ph,vx:0,vy:0,face:1,onG:false,coyote:0,buffer:0,sq:1,invuln:0,anim:0};
+    cam=0;
+    heroCol = (S.world.color)|| (S.hero.parts[0]&&COLORS[S.hero.parts[0].ci%COLORS.length]) || "#33CDBA";
+  }
+  function hurt(){ if(P.invuln>0)return; P.x=2*TILE;P.y=6*TILE;P.vx=0;P.vy=0;P.invuln=50; }
+  function step(){
+    tSpr++;
+    var onIce=false; var below=solid(P.x+P.w/2,P.y+P.h+2); if(below==="~")onIce=true;
+    var aG=onIce?0.16:C.aG, fr=onIce?0.98:C.fric;
+    var mr=C.maxRun*(parts2.power==="dash"&&parts2.dashCd>34?1.7:1);
+    if(IN.left){P.vx-=(P.onG?aG:C.aA)*((P.vx>0)?C.turn:1);if(P.vx<-mr)P.vx=-mr;P.face=-1;}
+    if(IN.right){P.vx+=(P.onG?aG:C.aA)*((P.vx<0)?C.turn:1);if(P.vx>mr)P.vx=mr;P.face=1;}
+    if(!IN.left&&!IN.right)P.vx*=P.onG?fr:C.drag;
+    if(Math.abs(P.vx)<0.05)P.vx=0;
+    // water = swim
+    var inWater = things.water && P.x/TILE>=things.water.x0 && P.x/TILE<=things.water.x1 && P.y>6.2*TILE;
+    if(P.onG)P.coyote=C.coyote; else if(P.coyote>0)P.coyote--;
+    if(parts2.dashCd>0)parts2.dashCd--;
+    if(P.invuln>0)P.invuln--;
+    if(parts2.shield>0)parts2.shield--;
+    // jump / double jump / swim / climb
+    if(IN.jump&&!IN._jlast){
+      if(inWater){ P.vy=-4.2; }
+      else if(P.coyote>0){ P.vy=C.jumpV;P.coyote=0;P.sq=1.35;parts2.jumps=1; }
+      else if(parts2.power==="double_jump"&&parts2.jumps===1){ P.vy=C.jumpV*0.92;parts2.jumps=2;P.sq=1.3; }
+    }
+    IN._jlast=IN.jump;
+    // action button (edge)
+    if(IN.actionEdge){
+      IN.actionEdge=false;
+      if(parts2.power==="dash"){ P.vx=P.face*10; parts2.dashCd=40; }
+      else if(parts2.power==="smash"&&!P.onG){ P.vy=14; parts2.smashing=true; }
+      else if(parts2.power==="fireball"){ things.projectiles.push({x:P.x+P.w/2,y:P.y+P.h/2,vx:P.face*8,life:60}); }
+      else if(parts2.power==="shield"){ parts2.shield=90; }
+    }
+    var g=P.vy<0?C.gUp:C.gDown;
+    if(Math.abs(P.vy)<C.hangBand)g*=C.hangMult;
+    if(parts2.power==="glide"&&P.vy>0&&IN.jumpHeld)g*=0.30;
+    if(inWater)g*=0.25;
+    P.vy=Math.min(inWater?4:C.maxFall,P.vy+g);
+    // wall climb
+    if(parts2.power==="wall_climb"){
+      var touchWall=(P.face>0&&isWall(solid(P.x+P.w+1,P.y+5)))||(P.face<0&&isWall(solid(P.x-1,P.y+5)));
+      var pushing=(P.face>0&&IN.right)||(P.face<0&&IN.left);
+      if(touchWall&&pushing&&!P.onG){ P.vy=-2.4; parts2.climbing=true; } else parts2.climbing=false;
+    }
+    moveH(); moveV();
+    if(P.onG){parts2.jumps=0;parts2.smashing=false;}
+    P.sq+=(1-P.sq)*0.18;
+    if(Math.abs(P.vx)>0.4&&P.onG)P.anim+=0.25;else P.anim+=0.05;
+    // smash breaks block on contact
+    if(parts2.smashing){ var bc=solid(P.x+P.w/2,P.y+P.h+2);
+      var tx=Math.floor((P.x+P.w/2)/TILE),ty=Math.floor((P.y+P.h+2)/TILE);
+      if(LV[ty]&&LV[ty][tx]==="B"){ LV[ty][tx]="."; P.vy=-6; parts2.smashing=false; msgFlash("SMASH!"); } }
+    // hazards from grid
+    var hz=[[P.x+P.w/2,P.y+P.h-1],[P.x+P.w/2,P.y+2]];
+    for(var i=0;i<hz.length;i++){ var c=solid(hz[i][0],hz[i][1]); if(c==="^"||c==="L"){ if(parts2.shield<=0)hurt(); } }
+    if(P.y>LV.length*TILE+80)hurt();
+    // targets (fireball)
+    things.projectiles.forEach(function(pr){ pr.x+=pr.vx; pr.life--;
+      things.targets.forEach(function(tg){ if(!tg.hit&&Math.abs(pr.x-tg.x)<24&&Math.abs(pr.y-tg.y)<28){tg.hit=true;pr.life=0;msgFlash("HIT!");} }); });
+    things.projectiles=things.projectiles.filter(function(p){return p.life>0;});
+    // enemies
+    things.enemies.forEach(function(e){ if(!e.alive)return; e.ph+=0.1;
+      if(e.beh==="patrol"||e.beh==="fast"){ var ax=e.vx>0?e.x+e.w+2:e.x-2;
+        if(isWall(solid(ax,e.y+e.h/2))||solid(ax,e.y+e.h+6)===".")e.vx=-e.vx; e.x+=e.vx; }
+      else if(e.beh==="float"){ e.x+=e.vx; e.y=e.baseY-Math.sin(e.ph)*22; if(e.x<3*TILE||e.x>15*TILE)e.vx=-e.vx; }
+      else if(e.beh==="swoop"){ e.x+=e.vx; e.y=e.baseY-40+Math.sin(e.ph*1.5)*30; if(e.x<3*TILE||e.x>15*TILE)e.vx=-e.vx; }
+      var eb={x:e.x+3,y:e.y+3,w:e.w-6,h:e.h-6};
+      var bop={x:P.face>0?P.x+P.w-4:P.x-30,y:P.y-4,w:34,h:P.h+8};
+      if(IN.action&&aabb(bop,eb)&&!e.spiky){e.alive=false;msgFlash("BOP!");return;}
+      if(aabb(P,eb)){ var stomp=P.vy>1&&(P.y+P.h)<(e.y+e.h*0.6);
+        if(stomp&&!e.spiky){e.alive=false;P.vy=-7;msgFlash("SQUISH!");}
+        else hurt(); }
+    });
+    // saw
+    if(things.saw){ var s=things.saw; s.a+=0.3; s.x+=s.dir*1.8; if(s.x<s.x0||s.x>s.x1)s.dir=-s.dir;
+      if(Math.abs(P.x+P.w/2-s.x)<24&&Math.abs(P.y+P.h/2-s.y)<24)hurt(); }
+    // crusher
+    if(things.crusher){ var cr=things.crusher; cr.ph+=0.04; var cy=cr.ph%1;
+      cr.y = cy<0.5 ? (cy*2)*(5*TILE) : (5*TILE); // slam down first half, hold
+      if(Math.abs(P.x+P.w/2-cr.x)<28 && P.y<cr.y+TILE && P.y+P.h>cr.y && cr.y>2*TILE)hurt(); }
+    // mover
+    if(things.mover){ var mv=things.mover; mv.x+=mv.dir*1.4; if(mv.x<mv.x0||mv.x>mv.x1)mv.dir=-mv.dir;
+      // ride: if standing on it
+      if(P.vy>=0 && P.x+P.w>mv.x && P.x<mv.x+TILE*1.5 && Math.abs((P.y+P.h)-mv.y)<8){ P.y=mv.y-P.h; P.vy=0; P.onG=true; P.x+=mv.dir*1.4; } }
+    // boss attacks
+    if(things.boss)stepBoss(things.boss);
+    // camera
+    var viewW=cv.clientWidth/scale();
+    cam=Math.max(0,Math.min(LV[0].length*TILE-viewW, P.x-viewW/2));
+    if(LV[0].length*TILE<viewW)cam=0;
+  }
+  function stepBoss(b){
+    b.t++; b.ph+=0.08;
+    if(b.attack==="charge"){ if(b.t%140<70){b.x-=3.2;b.dir=-1;}else{b.x+=1;b.dir=1;} if(b.x<3*TILE)b.x=13*TILE;
+      if(aabb(P,{x:b.x+6,y:b.y+6,w:b.w-12,h:b.h-12}))hurt(); }
+    else if(b.attack==="jump"){ b.vy+=C.gDown; b.y+=b.vy; if(b.y>5*TILE){b.y=5*TILE;b.vy= b.t%90===0?-13:0;}
+      if(b.vy===0&&b.t%90<6)msgFlash("BOOM!"); if(aabb(P,{x:b.x,y:b.y,w:b.w,h:b.h}))hurt(); }
+    else if(b.attack==="throw"){ if(b.t%50===0)things.projectiles.push({x:b.x,y:b.y,vx:-5,vy:-3,life:90,arc:true});
+      things.projectiles.forEach(function(pr){ if(pr.arc){pr.vy+=0.35;pr.y+=pr.vy;} if(Math.abs(pr.x-(P.x+P.w/2))<20&&Math.abs(pr.y-(P.y+P.h/2))<22)hurt(); }); }
+    else if(b.attack==="split"){ b.x=10*TILE+Math.sin(b.ph)*4*TILE; if(!b.twin)b.twin={};
+      b.twin.x=10*TILE-Math.sin(b.ph)*4*TILE; b.twin.y=b.y;
+      [{x:b.x,y:b.y},{x:b.twin.x,y:b.twin.y}].forEach(function(o){ if(aabb(P,{x:o.x+6,y:o.y+6,w:b.w-12,h:b.h-12}))hurt(); }); }
+    else if(b.attack==="stomp"){ b.vy+=C.gDown*1.4; b.y+=b.vy; if(b.y>5*TILE){ b.y=5*TILE; if(b.vy>3){things.shock=1;msgFlash("STOMP!");} b.vy= b.t%80===0?-11:0; }
+      if(things.shock){ things.shock*=1.06; if(P.onG&&things.shock>2&&things.shock<6)hurt(); if(things.shock>8)things.shock=0; } }
+    else if(b.attack==="spin"){ b.x=10*TILE+Math.sin(b.ph*1.6)*5*TILE; if(aabb(P,{x:b.x+8,y:b.y+8,w:b.w-16,h:b.h-16}))hurt(); }
+    else if(b.attack==="beam"){ if(b.t%110<12){ things.beam=b.y+b.h-6; if(P.onG&&Math.abs((P.y+P.h)-things.beam)<20)hurt(); } else things.beam=null; }
+    else if(b.attack==="helpers"){ if(b.t%120===0&&things.enemies.length<3)things.enemies.push({x:b.x,y:6*TILE,w:26,h:26,vx:-1.6,alive:true,beh:"patrol",ph:0,baseY:6*TILE}); }
+    b.x=Math.max(2*TILE,Math.min(15*TILE,b.x));
+  }
+  function moveH(){ P.x+=P.vx;
+    if(P.vx>0&&(isWall(solid(P.x+P.w,P.y+3))||isWall(solid(P.x+P.w,P.y+P.h-3)))){P.x=Math.floor((P.x+P.w)/TILE)*TILE-P.w-0.01;P.vx=0;}
+    else if(P.vx<0&&(isWall(solid(P.x,P.y+3))||isWall(solid(P.x,P.y+P.h-3)))){P.x=(Math.floor(P.x/TILE)+1)*TILE+0.01;P.vx=0;} }
+  function moveV(){ var pb=P.y+P.h; P.y+=P.vy; P.onG=false;
+    if(P.vy>0){ var bl=solid(P.x+2,P.y+P.h),br=solid(P.x+P.w-2,P.y+P.h);
+      var tileTop=Math.floor((P.y+P.h)/TILE)*TILE;
+      if(isWall(bl)||isWall(br)||((isOne(bl)||isOne(br))&&pb<=tileTop+6)){P.y=tileTop-P.h-0.01;P.vy=0;P.onG=true;} }
+    else if(P.vy<0){ if(isWall(solid(P.x+2,P.y))||isWall(solid(P.x+P.w-2,P.y))){P.y=(Math.floor(P.y/TILE)+1)*TILE+0.01;P.vy=0;} } }
+  function aabb(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
+  var flashT=0;
+  function msgFlash(m){ msg=m; flashT=40; }
+  function scale(){ return cv.clientWidth/(10*TILE); }
+  function draw(){
+    var W=cv.clientWidth,H=cv.clientHeight; if(flashT>0)flashT--;
+    ctx.fillStyle="#0B1424"; ctx.fillRect(0,0,W,H);
+    ctx.save(); var sc=scale(); ctx.scale(sc,sc); ctx.translate(-cam,0);
+    // tiles
+    for(var y=0;y<LV.length;y++)for(var x=0;x<LV[0].length;x++){ var c=LV[y][x];
+      if(c==="#"){ctx.fillStyle="#2E4770";ctx.fillRect(x*TILE,y*TILE,TILE,TILE);ctx.fillStyle="#456099";ctx.fillRect(x*TILE,y*TILE,TILE,5);}
+      else if(c==="~"){ctx.fillStyle="#9AD8F0";ctx.fillRect(x*TILE,y*TILE,TILE,TILE);ctx.fillStyle="#CDEBFA";ctx.fillRect(x*TILE,y*TILE,TILE,5);}
+      else if(c==="="){ctx.fillStyle="#A47BE8";ctx.fillRect(x*TILE,y*TILE+2,TILE,12);}
+      else if(c==="^"){ctx.fillStyle="#FFD24A";for(var i=0;i<3;i++){ctx.beginPath();ctx.moveTo(x*TILE+i*12,y*TILE+TILE);ctx.lineTo(x*TILE+i*12+6,y*TILE+8);ctx.lineTo(x*TILE+i*12+12,y*TILE+TILE);ctx.fill();}}
+      else if(c==="W"){ctx.fillStyle="rgba(79,163,227,.55)";ctx.fillRect(x*TILE,y*TILE,TILE,TILE);}
+      else if(c==="L"){ctx.fillStyle="#F0602E";ctx.fillRect(x*TILE,y*TILE,TILE,TILE);ctx.fillStyle="#FFC24A";ctx.fillRect(x*TILE,y*TILE,TILE,5);}
+      else if(c==="B"){ctx.fillStyle="#C9873E";ctx.fillRect(x*TILE+2,y*TILE+2,TILE-4,TILE-4);ctx.strokeStyle="#7A4F1E";ctx.strokeRect(x*TILE+2,y*TILE+2,TILE-4,TILE-4);}
+      else if(c==="S"){ctx.font="24px sans-serif";ctx.fillText("⭐",x*TILE+6,y*TILE+26);}
+    }
+    // targets
+    things.targets.forEach(function(t){ ctx.font="28px sans-serif"; ctx.fillText(t.hit?"💥":"🎯",t.x-14,t.y+10); });
+    // saw / crusher / mover
+    if(things.saw){ ctx.save();ctx.translate(things.saw.x,things.saw.y);ctx.rotate(things.saw.a);ctx.fillStyle="#B0B8C8";
+      for(var i=0;i<8;i++){ctx.rotate(Math.PI/4);ctx.fillRect(-3,-22,6,10);} ctx.beginPath();ctx.arc(0,0,16,0,6.29);ctx.fillStyle="#6E7A90";ctx.fill();ctx.restore(); }
+    if(things.crusher){ ctx.fillStyle="#7A5AB0"; ctx.fillRect(things.crusher.x-24,things.crusher.y-TILE,48,TILE); }
+    if(things.mover){ ctx.fillStyle="#A47BE8"; ctx.fillRect(things.mover.x,things.mover.y,TILE*1.5,12); }
+    if(things.beam){ ctx.fillStyle="rgba(240,96,46,.8)"; ctx.fillRect(cam,things.beam,cv.clientWidth/sc,8); }
+    // enemies
+    things.enemies.forEach(function(e){ if(!e.alive)return;
+      ctx.fillStyle=e.spiky?"#F0602E":"#4A3568"; ctx.beginPath(); ctx.arc(e.x+e.w/2,e.y+e.h/2,e.w/2,0,6.29); ctx.fill();
+      if(e.spiky){ctx.fillStyle="#FFC24A";for(var i=0;i<8;i++){var a=i/8*6.29;ctx.beginPath();ctx.moveTo(e.x+e.w/2+Math.cos(a)*e.w/2,e.y+e.h/2+Math.sin(a)*e.h/2);ctx.lineTo(e.x+e.w/2+Math.cos(a)*e.w/2*1.4,e.y+e.h/2+Math.sin(a)*e.h/2*1.4);ctx.lineTo(e.x+e.w/2+Math.cos(a+0.3)*e.w/2,e.y+e.h/2+Math.sin(a+0.3)*e.h/2);ctx.fill();}}
+      ctx.fillStyle="#fff";ctx.fillRect(e.x+8,e.y+10,6,6);ctx.fillRect(e.x+e.w-14,e.y+10,6,6); });
+    // boss
+    if(things.boss){ var b=things.boss;
+      function drawB(bx,by){ ctx.fillStyle="#5A3E8C"; ctx.beginPath(); ctx.arc(bx+b.w/2,by+b.h/2,b.w/2,0,6.29); ctx.fill();
+        ctx.fillStyle="#FFD24A"; ctx.fillRect(bx+12,by+16,8,8); ctx.fillRect(bx+b.w-20,by+16,8,8); }
+      drawB(b.x,b.y); if(b.twin&&b.attack==="split")drawB(b.twin.x,b.twin.y);
+      if(things.shock){ ctx.strokeStyle="rgba(255,210,74,.7)";ctx.lineWidth=4;ctx.beginPath();ctx.arc(b.x+b.w/2,7*TILE,things.shock*20,0,6.29);ctx.stroke(); }
+    }
+    // projectiles
+    things.projectiles.forEach(function(pr){ ctx.font="20px sans-serif"; ctx.fillText(pr.arc?"💫":"🔥",pr.x-8,pr.y+6); });
+    // hero
+    if(!(P.invuln>0&&Math.floor(P.invuln/4)%2===0)){
+      ctx.save(); ctx.translate(P.x+P.w/2,P.y+P.h); ctx.scale((2-P.sq),P.sq);
+      ctx.fillStyle=heroCol; ctx.beginPath(); ctx.arc(0,-P.h/2,P.w/2+3,0,6.29); ctx.fill();
+      ctx.fillStyle="#fff"; ctx.fillRect(-9,-P.h/2-3,7,7); ctx.fillRect(3,-P.h/2-3,7,7);
+      ctx.fillStyle="#15242E"; ctx.fillRect(-6,-P.h/2-1,3,3); ctx.fillRect(5,-P.h/2-1,3,3);
+      ctx.restore();
+      if(parts2.shield>0){ ctx.strokeStyle="rgba(255,201,74,.9)";ctx.lineWidth=3;ctx.beginPath();ctx.arc(P.x+P.w/2,P.y+P.h/2,P.w,0,6.29);ctx.stroke(); }
+    }
+    ctx.restore();
+    // dark overlay
+    if(things.dark){ var gr=ctx.createRadialGradient((P.x-cam)*sc+P.w/2*sc,P.y*sc+P.h/2*sc,10,(P.x-cam)*sc+P.w/2*sc,P.y*sc+P.h/2*sc,150);
+      gr.addColorStop(0,"rgba(0,0,0,0)");gr.addColorStop(1,"rgba(0,0,0,.92)"); ctx.fillStyle=gr; ctx.fillRect(0,0,W,H); }
+    // flash msg
+    if(flashT>0){ ctx.font="900 26px sans-serif";ctx.textAlign="center";ctx.fillStyle="#FFD24A";ctx.fillText(msg,W/2,H*0.3);ctx.textAlign="left"; }
+  }
+  function loop(now){ if(!running)return;
+    if(!lastT)lastT=now; var dt=Math.min(100,now-lastT); lastT=now; acc+=dt; var n=0;
+    while(acc>=1000/60&&n<5){ step(); acc-=1000/60; n++; } if(n===5)acc=0;
+    resize(); draw(); raf=requestAnimationFrame(loop);
+  }
+  function resize(){ var dpr=Math.min(window.devicePixelRatio||1,2);
+    if(cv.width!==Math.round(cv.clientWidth*dpr)||cv.height!==Math.round(cv.clientHeight*dpr)){
+      cv.width=cv.clientWidth*dpr; cv.height=cv.clientHeight*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); } }
+  function bindBtn(id,setName){ var b=el(id);
+    b.addEventListener("pointerdown",function(e){e.preventDefault();b.setPointerCapture(e.pointerId);b.classList.add("held");
+      if(setName==="action"){IN.action=true;IN.actionEdge=true;}else{IN[setName]=true; if(setName==="jump")IN.jumpHeld=true;} });
+    ["pointerup","pointercancel"].forEach(function(ev){ b.addEventListener(ev,function(){b.classList.remove("held");
+      if(setName==="action")IN.action=false; else {IN[setName]=false; if(setName==="jump")IN.jumpHeld=false;} }); });
+  }
+  var bound=false;
+  function open(d,category,name,rateCb){
+    demo=d; cat=category; itemName=name; onRate=rateCb;
+    cv=el("pgCanvas"); ctx=cv.getContext("2d");
+    el("pgTitle").textContent="Try: "+d.title;
+    el("pgTip").textContent=d.tip;
+    var act=el("pgAction");
+    if(d.action){ act.classList.remove("hidden"); act.textContent=d.action; } else act.classList.add("hidden");
+    // stars reflect existing rating
+    var cur=(S.ratings[cat]&&S.ratings[cat][name])||0;
+    paintStars(cur);
+    if(!bound){ bound=true;
+      bindBtn("pgLeft","left"); bindBtn("pgRight","right"); bindBtn("pgJump","jump"); bindBtn("pgAction","action");
+      el("pgClose").addEventListener("click",close);
+      el("pgDone").addEventListener("click",close);
+      el("pgStars").addEventListener("click",function(e){ var s=e.target.getAttribute("data-s"); if(!s)return;
+        s=parseInt(s,10); S.ratings[cat][itemName]=s; save(); paintStars(s); if(onRate)onRate(); confetti(); });
+    }
+    el("pgOverlay").classList.remove("hidden");
+    setup(); running=true; lastT=0; acc=0; raf=requestAnimationFrame(loop);
+  }
+  function paintStars(n){ var sp=el("pgStars").querySelectorAll("span"); sp.forEach(function(s){ var v=parseInt(s.getAttribute("data-s"),10); s.textContent=v<=n?"★":"☆"; s.classList.toggle("on",v<=n); }); }
+  function close(){ running=false; if(raf)cancelAnimationFrame(raf); raf=null;
+    IN.left=IN.right=IN.jump=IN.jumpHeld=IN.action=false;
+    el("pgOverlay").classList.add("hidden"); }
+  return {open:open,close:close,C:C};
+})();
 
 function confetti(){
   var emo=["🎉","⭐","💛","🎈","✨","💜"];

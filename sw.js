@@ -1,5 +1,5 @@
 "use strict";
-var CACHE = "dq-v1.0";
+var CACHE = "dq-v1.2";
 var PRECACHE = ["./design-quest.html","./index.html","./manifest.webmanifest","./icon-180.png","./icon-512.png"];
 
 self.addEventListener("install", function(e){
