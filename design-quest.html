@@ -143,12 +143,32 @@
   .pgStars span.on{color:var(--accent2);}
   .pgDone{margin-top:8px;background:var(--good);color:#0A2A16;border:3px solid var(--ink);border-radius:14px;
     font-size:17px;font-weight:900;padding:12px 30px;cursor:pointer;}
+  .pgFeedback{display:flex;gap:8px;align-items:center;margin-top:8px;}
+  .pgFeedback input{flex:1;margin:0;font-size:15px;padding:10px;}
+  .pgBug{flex:0 0 auto;font-size:13px;font-weight:900;padding:10px 12px;border:3px solid var(--ink);border-radius:12px;
+    background:var(--soft);color:var(--ink);cursor:pointer;white-space:nowrap;}
+  .pgBug.on{background:#E7404A;color:#fff;}
+  .pgMath{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:12px;gap:10px;background:linear-gradient(180deg,#14243A,#22406B);}
+  .pgMath .mTitle{font-size:18px;font-weight:900;color:var(--accent2);text-align:center;}
+  .pgMath .mRow{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .pgMath .mFriend{width:78px;height:92px;border:3px solid var(--ink);border-radius:14px;background:var(--soft);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-weight:900;}
+  .pgMath .mFriend .face{font-size:30px;}
+  .pgMath .mFriend .cnt{font-size:20px;color:var(--accent2);}
+  .pgMath .mPile{font-size:15px;font-weight:900;}
+  .pgMath .mBig{font-size:22px;font-weight:900;color:var(--good);text-align:center;min-height:28px;}
+  .pgMath .mStar{font-size:34px;cursor:pointer;transition:transform .1s;}
+  .pgMath .mStar:active{transform:scale(1.3);}
+  .pgMath .mGroups{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:340px;}
+  .pgMath .mGroup{border:2px dashed var(--accent2);border-radius:10px;padding:4px 6px;font-size:18px;min-width:48px;text-align:center;}
+  .pgMath .mBtn{background:var(--accent);color:#fff;border:3px solid var(--ink);border-radius:12px;font-weight:900;padding:10px 16px;cursor:pointer;}
   .hidden{display:none !important;}
   .mini{font-size:12px;opacity:.65;text-align:center;margin-top:8px;}
 </style>
 </head>
 <body>
-<div class="badge">DESIGN QUEST · PLANNER v6</div>
+<div class="badge">DESIGN QUEST · PLANNER v8 · Sep 5</div>
 <button class="back" id="backBtn" style="display:none">◀ Back</button>
 <div class="wrap">
 
@@ -157,12 +177,16 @@
   <h1>DESIGN QUEST</h1>
   <p class="sub">You are the game designer! Build your game piece by piece. Do them in ANY order. Watch your game grow!</p>
   <div class="sheet" id="gameSheet"></div>
+  <div class="chap" data-nav="scr-new" id="newCard" style="border-color:var(--accent2);"><div class="ic" style="background:var(--accent2);color:var(--bg1);">🆕</div><div><div class="t">What's New!</div><div class="d" id="newDesc">Dad added new stuff. Try it and rate it!</div></div><div class="prog" id="prog-new">○</div></div>
   <div class="chap" data-nav="scr-hero"><div class="ic">🦸</div><div><div class="t">The Hero</div><div class="d">Who do you play as?</div></div><div class="prog" id="prog-hero">○</div></div>
   <div class="chap" data-nav="scr-world"><div class="ic">🌍</div><div><div class="t">The World</div><div class="d">Where does it happen?</div></div><div class="prog" id="prog-world">○</div></div>
   <div class="chap" data-nav="scr-journey"><div class="ic">📖</div><div><div class="t">The Journey</div><div class="d">What's the adventure?</div></div><div class="prog" id="prog-journey">○</div></div>
+  <div class="chap" data-nav="scr-friends"><div class="ic">🤝</div><div><div class="t">Friends &amp; Helpers</div><div class="d">Your robot, your friend, your pet</div></div><div class="prog" id="prog-friends">○</div></div>
   <div class="chap" data-nav="scr-challenge"><div class="ic">⚔️</div><div><div class="t">The Challenges</div><div class="d">Enemies, powers, traps, boss</div></div><div class="prog" id="prog-challenge">○</div></div>
   <div class="chap" data-nav="scr-dream"><div class="ic">💭</div><div><div class="t">Your Dream</div><div class="d">The COOLEST stuff you imagine!</div></div><div class="prog" id="prog-dream">○</div></div>
-  <div class="chap" data-nav="scr-learn"><div class="ic">🧠</div><div><div class="t">Brain Boosts</div><div class="d">Want to sneak in some math?</div></div><div class="prog" id="prog-learn">○</div></div>
+  <div class="chap" data-nav="scr-learn"><div class="ic">🧠</div><div><div class="t">Brain Boosts</div><div class="d">Want to sneak in some math? Play it!</div></div><div class="prog" id="prog-learn">○</div></div>
+  <div class="chap" data-nav="scr-sequel"><div class="ic">🚀</div><div><div class="t">The Sequel</div><div class="d">You asked for it! What's next?</div></div><div class="prog" id="prog-sequel">○</div></div>
+  <div class="chap" data-nav="scr-fixit"><div class="ic">🐛</div><div><div class="t">Fix-It Notes</div><div class="d">Found a bug? Tell Dad here!</div></div><div class="prog" id="prog-fixit">○</div></div>
   <div class="hubbtns">
     <button class="bigbtn alt" id="dadBtn">SHOW DAD 📋</button>
   </div>
@@ -215,6 +239,10 @@
   <p class="sub">Every game has an adventure. Build yours! (Pick ideas OR add your own.)</p>
   <div class="card" id="journeyQs"></div>
   <div class="card">
+    <div class="q">💎 The MAGIC PIECES you collect:</div>
+    <div id="piecesQs"></div>
+  </div>
+  <div class="card">
     <div class="q">📣 Tell the WHOLE story your way:</div>
     <div class="noteLabel">Say anything you imagine happening. There are no wrong answers!</div>
     <input type="text" id="storyBig" placeholder="🎤 talk or type your story…">
@@ -243,6 +271,15 @@
     <div id="bossAttacks"></div>
     <div class="note"><div class="noteLabel">🎤 Anything else about the boss?</div>
       <input type="text" id="bossNote" placeholder="talk or type here…"></div>
+  </div>
+  <div class="card">
+    <div class="q">⚡ INVENT YOUR OWN POWER! (You already had an idea: rock and ice. Try them!)</div>
+    <div id="customDemos"></div>
+    <div class="q">Name your power:</div>
+    <input type="text" id="customName" placeholder="🎤 talk or type a cool name…">
+    <div id="customQs"></div>
+    <div class="note"><div class="noteLabel">🎤 Tell me more about your power:</div>
+      <input type="text" id="customNotes" placeholder="talk or type here…"></div>
   </div>
   <div class="doneToggle" data-done="challenge"><span>✔</span> I'm happy with the challenges!</div>
   <button class="bigbtn" id="challengeBack">◀ BACK TO MY GAME</button>
@@ -276,11 +313,64 @@
   <p class="sub">Want your game to secretly make you smarter? You choose! Math can be part of the fun.</p>
   <div class="card" id="learnQs"></div>
   <div class="card">
+    <div class="q">🎮 PLAY the math! Try these and rate them:</div>
+    <div id="mathDemos"></div>
+  </div>
+  <div class="card">
     <div class="q">🎤 Any other smart stuff you want to learn while playing?</div>
     <input type="text" id="learnNotes" placeholder="talk or type here… (math, reading, anything!)">
   </div>
   <div class="doneToggle" data-done="learn"><span>✔</span> I picked my brain boosts!</div>
   <button class="bigbtn" id="learnBack">◀ BACK TO MY GAME</button>
+</div>
+
+<!-- FRIENDS & HELPERS -->
+<div class="screen" id="scr-friends">
+  <h1>Friends &amp; Helpers</h1>
+  <p class="sub">Your hero isn't alone! Who's on the team?</p>
+  <div class="card">
+    <div class="q">🤖 Your ROBOT HELPER's name:</div>
+    <input type="text" id="robotName" placeholder="🎤 talk or type a name…">
+    <div class="q">🧑‍🤝‍🧑 The FRIEND who got captured, their name:</div>
+    <input type="text" id="friendName" placeholder="🎤 talk or type a name…">
+    <div class="q">🐾 Your SPECIAL PET's name:</div>
+    <input type="text" id="petName" placeholder="🎤 talk or type a name…">
+  </div>
+  <div class="card" id="friendsQs"></div>
+  <div class="card">
+    <div class="q">🎤 Anything else about your friends?</div>
+    <input type="text" id="friendsNotes" placeholder="talk or type here…">
+  </div>
+  <div class="doneToggle" data-done="friends"><span>✔</span> My team is ready!</div>
+  <button class="bigbtn" id="friendsBack">◀ BACK TO MY GAME</button>
+</div>
+
+<!-- SEQUEL -->
+<div class="screen" id="scr-sequel">
+  <h1>The Sequel</h1>
+  <p class="sub">You said you wanted a sequel. So… what happens NEXT?</p>
+  <div class="card" id="sequelQs"></div>
+  <div class="card">
+    <div class="q">🎤 Tell me the sequel your way:</div>
+    <input type="text" id="sequelNotes" placeholder="talk or type here…">
+  </div>
+  <div class="doneToggle" data-done="sequel"><span>✔</span> The sequel is planned!</div>
+  <button class="bigbtn" id="sequelBack">◀ BACK TO MY GAME</button>
+</div>
+
+<!-- FIX-IT -->
+<div class="screen" id="scr-fixit">
+  <h1>Fix-It Notes</h1>
+  <p class="sub">You're the TESTER too. Found something wrong? Tell Dad so he can fix it!</p>
+  <div class="card">
+    <div class="q">🐛 Bugs you flagged while playing:</div>
+    <div id="fixitList"></div>
+  </div>
+  <div class="card">
+    <div class="q">🎤 Anything else that's broken or should be different?</div>
+    <input type="text" id="fixitNotes" placeholder="talk or type here…">
+  </div>
+  <button class="bigbtn" id="fixitBack">◀ BACK TO MY GAME</button>
 </div>
 
 <!-- PLAYGROUND OVERLAY -->
@@ -290,7 +380,7 @@
     <button class="pgClose" id="pgClose">✕</button>
   </div>
   <div class="pgTip" id="pgTip"></div>
-  <div class="pgStageWrap"><canvas id="pgCanvas"></canvas></div>
+  <div class="pgStageWrap"><canvas id="pgCanvas"></canvas><div id="pgMath" class="pgMath hidden"></div></div>
   <div class="pgControls" id="pgControls">
     <div class="pgPad"><button class="pgBtn" id="pgLeft">◀</button><button class="pgBtn" id="pgRight">▶</button></div>
     <div class="pgPad"><button class="pgBtn pgAction hidden" id="pgAction">GO</button><button class="pgBtn pgJump" id="pgJump">⤒</button></div>
@@ -298,13 +388,27 @@
   <div class="pgRate">
     <div class="pgRateQ">How much do you like it?</div>
     <div class="pgStars" id="pgStars"><span data-s="1">☆</span><span data-s="2">☆</span><span data-s="3">☆</span></div>
+    <div class="pgFeedback">
+      <input type="text" id="pgComment" placeholder="🎤 What's wrong? What would you change?">
+      <button class="pgBug" id="pgBug">🐛 It's a bug!</button>
+    </div>
     <button class="pgDone" id="pgDone">✔ DONE</button>
   </div>
+</div>
+
+<!-- WHAT'S NEW tour -->
+<div class="screen" id="scr-new">
+  <h1>What's New!</h1>
+  <p class="sub">Dad built new stuff from YOUR ideas. Go try each one, then give it stars and tell us what you think!</p>
+  <div id="newList"></div>
+  <div class="mini" id="newProgress"></div>
+  <button class="bigbtn" id="newBack">◀ BACK TO MY GAME</button>
 </div>
 
 <!-- DAD -->
 <div class="screen" id="scr-dad">
   <h1 style="font-size:24px">For Dad</h1>
+  <div class="card" id="dadCheck"></div>
   <div class="card"><pre id="dadText"></pre></div>
   <div class="row"><button class="bigbtn ghost" id="copyBtn">Copy</button></div>
 </div>
@@ -341,7 +445,7 @@ var PURE = {
   ],
   CHALLENGE_Q: [
     {k:"enemies", q:"What are the ENEMIES like?", opts:["shadow blobs","robot bugs","grumpy slimes","flying bats","spiky balls","ghost critters"], multi:true},
-    {k:"powers", q:"What POWERS can you get?", opts:["double jump","super dash","glide/fly","ground smash","shoot fireballs","force shield","climb walls","swim fast"], multi:true},
+    {k:"powers", q:"What POWERS can you get?", opts:["super high jump","double jump","super dash","glide/fly","ground smash","shoot fireballs","force shield","climb walls","swim fast"], multi:true},
     {k:"hazards", q:"What TRAPS are in the levels?", opts:["spikes","pits","lava","spinny saws","crushers","moving floors","slippery ice","dark rooms"], multi:true}
   ],
   BOSS_ATTACKS: ["charges at you","big jumps","throws stuff","splits in two","stomps the ground","spins fast","shoots beams","calls helpers"],
@@ -364,17 +468,24 @@ var PURE = {
     return {
       hero:{parts:[],name:"",kind:null,want:null,fear:null,special:null,notes:""},
       world:{place:null,mood:null,beautiful:null,dangerous:null,artStyle:null,glow:null,color:null,notes:""},
-      journey:{start:null,meet:null,problem:null,chasing:null,ending:null,story:""},
+      journey:{start:null,meet:null,problem:null,chasing:null,ending:null,story:"",pieceWhat:null,pieceCount:null,pieceAll:null},
       challenge:{enemies:[],powers:[],hazards:[],bossParts:[],bossAttacks:[],bossNote:""},
-      ratings:{powers:{},enemies:{},hazards:{},bossAttacks:{}},
+      ratings:{powers:{},enemies:{},hazards:{},bossAttacks:{},math:{},custom:{}},
+      feedback:{powers:{},enemies:{},hazards:{},bossAttacks:{},math:{},custom:{}},
+      custom:{name:"",does:[],when:null,notes:""},
+      friends:{robotName:"",robotDoes:null,friendName:"",friendWho:null,petName:"",petDoes:null,notes:""},
+      sequel:{where:null,newPower:null,newBoss:null,start:null,notes:""},
+      fixit:{notes:""},
+      ideaRatings:{}, ideaComments:{},
       learn:{want:null,kinds:[],systems:[],notes:""},
       dream:{cool:"",add:"",secret:""},
-      done:{hero:false,world:false,journey:false,challenge:false,dream:false,learn:false}
+      done:{hero:false,world:false,journey:false,challenge:false,dream:false,learn:false,friends:false,sequel:false}
     };
   },
   // playable demo configs, keyed by the exact chip label
   POWER_DEMOS:{
-    "double jump":{title:"Double Jump",tip:"Jump, then JUMP again in the air to reach the high ledge!",power:"double_jump",scene:"ledge"},
+    "super high jump":{title:"Super High Jump",tip:"One JUMP goes WAY higher! Reach the top ledge.",power:"super_jump",scene:"tallLedge"},
+    "double jump":{title:"Double Jump",tip:"Jump, then tap JUMP AGAIN in the air for a second jump!",power:"double_jump",scene:"ledge"},
     "super dash":{title:"Super Dash",tip:"Tap DASH to zoom across the big gap!",power:"dash",action:"DASH",scene:"gap"},
     "glide/fly":{title:"Glide",tip:"Jump, then HOLD jump to float slowly across!",power:"glide",scene:"pit"},
     "ground smash":{title:"Ground Smash",tip:"Jump up, then tap SMASH to break the block!",power:"smash",action:"SMASH",scene:"block"},
@@ -412,14 +523,78 @@ var PURE = {
     "calls helpers":{title:"Call Helpers",tip:"It calls little helpers. Dodge them!",attack:"helpers"}
   },
   ratingLabel:function(r){ return r>=3?"LOVED":r===2?"liked":r===1?"ok":""; },
+  // the new ideas added after his last run — he tours, tries, and rates each
+  NEW_IDEAS:[
+    {id:"doubleJumpFix",title:"Double Jump is FIXED",desc:"You said it slowed you down. You were right! Now it goes WAY higher. Go test it.",nav:"scr-challenge",emoji:"⤒"},
+    {id:"superJump",title:"NEW: Super High Jump",desc:"One jump that goes super high. Try it and tell me if it's what you meant.",nav:"scr-challenge",emoji:"🚀"},
+    {id:"customPower",title:"NEW: Your OWN power (rock & ice!)",desc:"Your idea! Turn into a rock, turn into ice. Play them, name your power.",nav:"scr-challenge",emoji:"⚡"},
+    {id:"comments",title:"NEW: You can leave comments & flag bugs",desc:"After you play anything, say what's wrong or what you'd change. Tap 🐛 if it's a bug.",nav:"scr-challenge",emoji:"💬"},
+    {id:"friends",title:"NEW: Friends & Helpers",desc:"Name your robot, your captured friend, and your pet. What do they do?",nav:"scr-friends",emoji:"🤝"},
+    {id:"pieces",title:"NEW: The Magic Pieces",desc:"What ARE they? How many? What happens when you get them all?",nav:"scr-journey",emoji:"💎"},
+    {id:"mathGames",title:"NEW: Math you can PLAY",desc:"Share the treasure and collect in groups. Play them and rate them!",nav:"scr-learn",emoji:"🎮"},
+    {id:"sequel",title:"NEW: The Sequel",desc:"You asked for a sequel. Now plan it! Where, what's new, who's the boss?",nav:"scr-sequel",emoji:"🌍"},
+    {id:"fixit",title:"NEW: Fix-It Notes",desc:"You're the tester. Every bug you flag shows up here for Dad.",nav:"scr-fixit",emoji:"🐛"}
+  ],
+  // what he hasn't played/rated yet — so Dad gets ALL the answers
+  untried:function(S){
+    var out={demos:[],ideas:[],sections:[]};
+    var tables=[["powers",this.POWER_DEMOS],["enemies",this.ENEMY_DEMOS],["hazards",this.TRAP_DEMOS],["bossAttacks",this.BOSS_DEMOS],["custom",this.CUSTOM_DEMOS],["math",this.MATH_DEMOS]];
+    tables.forEach(function(tc){ var cat=tc[0],tbl=tc[1]; for(var name in tbl){ var r=(S.ratings[cat]&&S.ratings[cat][name])||0; if(!r) out.demos.push({cat:cat,name:name}); } });
+    this.NEW_IDEAS.forEach(function(it){ if(!(S.ideaRatings[it.id]>0)) out.ideas.push(it.title); });
+    if(!S.friends.robotName&&!S.friends.robotDoes) out.sections.push("Friends & Helpers");
+    if(!S.journey.pieceWhat) out.sections.push("Magic Pieces");
+    if(!S.sequel.where&&!S.sequel.start) out.sections.push("The Sequel");
+    if(!S.custom.name&&!S.custom.does.length) out.sections.push("Your own power");
+    return out;
+  },
+  demoTotal:function(){ var n=0; [this.POWER_DEMOS,this.ENEMY_DEMOS,this.TRAP_DEMOS,this.BOSS_DEMOS,this.CUSTOM_DEMOS,this.MATH_DEMOS].forEach(function(t){n+=Object.keys(t).length;}); return n; },
+  // his own invented power idea from last round, made playable
+  CUSTOM_DEMOS:{
+    "turn into a ROCK":{title:"Rock Form",tip:"Tap ROCK to turn into a rock! Rocks can't get hurt. Roll over the spikes!",power:"rock",action:"ROCK",scene:"spikes",custom:true},
+    "turn into ICE":{title:"Ice Form",tip:"Tap ICE to become ice! You slide super fast. Zoom across the gap!",power:"iceform",action:"ICE",scene:"gap",custom:true}
+  },
+  CUSTOM_Q:[
+    {k:"does",q:"What does YOUR power do?",opts:["turn into a rock","turn into ice","turn invisible","grow giant","shrink tiny","shoot lightning","freeze enemies","copy an enemy's power"],multi:true},
+    {k:"when",q:"When do you use it?",opts:["to get past danger","to beat enemies","to reach new places","to solve a puzzle"]}
+  ],
+  MATH_DEMOS:{
+    "Share the treasure":{title:"Share the Treasure",tip:"Give every friend the SAME number of gems! Tap a friend to give one.",math:"share"},
+    "Collect in groups":{title:"Collect in Groups",tip:"Grab stars! Watch them count up in groups.",math:"groups"}
+  },
+  PIECES_Q:[
+    {k:"pieceWhat",q:"What ARE the magic pieces?",opts:["pieces of a broken star","gems from each planet","parts of a lost key","crystals of power","pieces of your friend's map"]},
+    {k:"pieceCount",q:"How many do you need to collect?",opts:["3","5","7","10","a LOT"]},
+    {k:"pieceAll",q:"What happens when you get them ALL?",opts:["you unlock the boss","your friend is freed","you get a super form","a secret world opens","the ship can fly home"]}
+  ],
+  FRIENDS_Q:[
+    {k:"robotDoes",q:"What does your ROBOT HELPER do?",opts:["gives you hints","carries your stuff","fights beside you","fixes things","makes jokes","flies you around"]},
+    {k:"friendWho",q:"Who is the FRIEND that got captured?",opts:["your best buddy","your little sibling","your pet","a new alien friend","a robot friend"]},
+    {k:"petDoes",q:"What does your SPECIAL PET do?",opts:["finds hidden stuff","attacks enemies","gives you a power","follows you everywhere","can grow big"]}
+  ],
+  SEQUEL_Q:[
+    {k:"where",q:"Where does the SEQUEL happen?",opts:["a jungle planet","an ice planet","a lava planet","a water planet","a candy planet","back on Earth"]},
+    {k:"start",q:"How does the sequel START?",opts:["the ship crashes on the new planet","the Shadow Twin comes back","a new call for help","your friend goes missing again","you find a mystery map"]},
+    {k:"newPower",q:"What NEW power do you get?",opts:["turn into a rock","turn into ice","teleport","fly for real","a super pet form","time slow-down"]},
+    {k:"newBoss",q:"Who's the NEW boss?",opts:["Shadow Twin, bigger","the Shadow Twin's boss","a giant robot","a planet monster","a mystery villain"]}
+  ],
   favorites:function(S){
     var out={};
-    ["powers","enemies","hazards","bossAttacks"].forEach(function(cat){
+    ["powers","enemies","hazards","bossAttacks","math","custom"].forEach(function(cat){
       var m=S.ratings[cat]||{}, arr=[];
       for(var k in m){ if(m[k]>0) arr.push({name:k,r:m[k]}); }
       arr.sort(function(a,b){return b.r-a.r;});
       out[cat]=arr;
     });
+    return out;
+  },
+  // every comment he left on a demo, bugs first
+  comments:function(S){
+    var out=[];
+    ["powers","enemies","hazards","bossAttacks","math","custom"].forEach(function(cat){
+      var m=S.feedback[cat]||{};
+      for(var k in m){ var f=m[k]; if(f&&(f.comment||f.bug)) out.push({cat:cat,name:k,comment:f.comment||"",bug:!!f.bug}); }
+    });
+    out.sort(function(a,b){ return (b.bug?1:0)-(a.bug?1:0); });
     return out;
   },
   normalizeParts:function(parts){
@@ -445,9 +620,16 @@ var PURE = {
     }
     d.hero.parts=this.normalizeParts(d.hero.parts);
     d.challenge.bossParts=this.normalizeParts(d.challenge.bossParts);
-    if(!d.ratings)d.ratings={powers:{},enemies:{},hazards:{},bossAttacks:{}};
-    ["powers","enemies","hazards","bossAttacks"].forEach(function(c){ if(!d.ratings[c])d.ratings[c]={}; });
+    if(!d.ratings)d.ratings={};
+    ["powers","enemies","hazards","bossAttacks","math","custom"].forEach(function(c){ if(!d.ratings[c])d.ratings[c]={}; });
+    if(!d.feedback)d.feedback={};
+    ["powers","enemies","hazards","bossAttacks","math","custom"].forEach(function(c){ if(!d.feedback[c])d.feedback[c]={}; });
     if(!d.learn)d.learn={want:null,kinds:[],systems:[],notes:""};
+    if(!d.custom)d.custom={name:"",does:[],when:null,notes:""};
+    if(!d.friends)d.friends={robotName:"",robotDoes:null,friendName:"",friendWho:null,petName:"",petDoes:null,notes:""};
+    if(!d.sequel)d.sequel={where:null,newPower:null,newBoss:null,start:null,notes:""};
+    if(!d.fixit)d.fixit={notes:""};
+    if(!d.ideaRatings)d.ideaRatings={}; if(!d.ideaComments)d.ideaComments={};
     return d;
   },
   hasBody:function(parts){ for(var i=0;i<parts.length;i++){ if(this.BODY_TYPES.indexOf(parts[i].t)>=0) return true; } return false; },
@@ -460,7 +642,9 @@ var PURE = {
       journey: frac([S.journey.start,S.journey.meet,S.journey.problem,S.journey.chasing,S.journey.ending,S.journey.story]),
       challenge: frac([S.challenge.enemies,S.challenge.powers,S.challenge.hazards,this.hasBody(S.challenge.bossParts)]),
       dream: frac([S.dream.cool,S.dream.add,S.dream.secret]),
-      learn: frac([S.learn.want,S.learn.kinds,S.learn.systems])
+      learn: frac([S.learn.want,S.learn.kinds,S.learn.systems]),
+      friends: frac([S.friends.robotName,S.friends.robotDoes,S.friends.friendName,S.friends.friendWho,S.friends.petDoes]),
+      sequel: frac([S.sequel.where,S.sequel.start,S.sequel.newPower,S.sequel.newBoss])
     };
   },
   progIcon:function(f,done){
@@ -475,6 +659,32 @@ var PURE = {
     L.push("DESIGN QUEST — GARRETT'S GAME PLAN");
     L.push("==================================");
     L.push("(A fresh plan he built himself. Use this to build the game.)");
+    L.push("");
+    // BUGS + COMMENTS FIRST — he is the tester
+    var cm=PURE.comments(S);
+    var bugs=cm.filter(function(c){return c.bug;}), notes=cm.filter(function(c){return !c.bug;});
+    L.push("🐛 BUGS HE FOUND (fix these!)");
+    if(bugs.length) bugs.forEach(function(c){ L.push("  ["+c.cat+"] "+c.name+": "+(c.comment||"(flagged as a bug)")); });
+    else L.push("  (none flagged)");
+    if(S.fixit.notes) L.push("  General fix-it notes: "+S.fixit.notes);
+    L.push("");
+    L.push("💬 HIS COMMENTS ON THINGS HE TRIED");
+    if(notes.length) notes.forEach(function(c){ L.push("  ["+c.cat+"] "+c.name+": "+c.comment); });
+    else L.push("  (no comments yet)");
+    L.push("");
+    L.push("🆕 THE NEW IDEAS — HOW HE RATED EACH ONE");
+    var anyIdea=false;
+    PURE.NEW_IDEAS.forEach(function(it){ var r=S.ideaRatings[it.id]||0; if(r||S.ideaComments[it.id]){ anyIdea=true;
+      L.push("  "+["","⭐","⭐⭐","⭐⭐⭐"][r]+" "+PURE.ratingLabel(r)+" — "+it.title+(S.ideaComments[it.id]?("  → \""+S.ideaComments[it.id]+"\""):"")); } });
+    if(!anyIdea) L.push("  (hasn't rated the new ideas yet)");
+    L.push("");
+    var un=PURE.untried(S);
+    L.push("⏳ NOT YET TRIED / RATED ("+un.demos.length+" of "+PURE.demoTotal()+" demos unplayed)");
+    if(un.ideas.length) L.push("  New ideas not rated: "+un.ideas.join("; "));
+    if(un.sections.length) L.push("  Sections not started: "+un.sections.join("; "));
+    if(un.demos.length){ var byCat={}; un.demos.forEach(function(d){ (byCat[d.cat]=byCat[d.cat]||[]).push(d.name); });
+      for(var c in byCat) L.push("  "+c+": "+byCat[c].join(", ")); }
+    if(!un.demos.length&&!un.ideas.length&&!un.sections.length) L.push("  ✅ He did EVERYTHING.");
     L.push("");
     L.push("THE HERO  "+(S.done.hero?"✅ he's happy with it":""));
     L.push("  Name: "+(S.hero.name||"(none yet)"));
@@ -498,7 +708,14 @@ var PURE = {
     L.push("  Problem: "+(S.journey.problem||"?"));
     L.push("  Trying to: "+(S.journey.chasing||"?"));
     L.push("  Ends: "+(S.journey.ending||"?"));
+    L.push("  MAGIC PIECES: "+(S.journey.pieceWhat||"?")+" | need "+(S.journey.pieceCount||"?")+" | all collected → "+(S.journey.pieceAll||"?"));
     if(S.journey.story) L.push("  IN HIS WORDS: "+S.journey.story);
+    L.push("");
+    L.push("FRIENDS & HELPERS  "+(S.done.friends?"✅":""));
+    L.push("  Robot helper: "+(S.friends.robotName||"(no name)")+" — "+(S.friends.robotDoes||"?"));
+    L.push("  Captured friend: "+(S.friends.friendName||"(no name)")+" — "+(S.friends.friendWho||"?"));
+    L.push("  Special pet: "+(S.friends.petName||"(no name)")+" — "+(S.friends.petDoes||"?"));
+    if(S.friends.notes) L.push("  His words: "+S.friends.notes);
     L.push("");
     L.push("THE CHALLENGES  "+(S.done.challenge?"✅":""));
     L.push("  Enemies: "+(S.challenge.enemies.join(", ")||"?"));
@@ -506,17 +723,20 @@ var PURE = {
     L.push("  Traps: "+(S.challenge.hazards.join(", ")||"?"));
     L.push("  Boss: built from "+S.challenge.bossParts.length+" parts; does: "+(S.challenge.bossAttacks.join(", ")||"?"));
     if(S.challenge.bossNote) L.push("  Boss notes: "+S.challenge.bossNote);
+    L.push("  HIS OWN POWER: "+(S.custom.name||"(no name)")+" — does: "+(S.custom.does.join(", ")||"?")+" — used: "+(S.custom.when||"?"));
+    if(S.custom.notes) L.push("  Power notes: "+S.custom.notes);
     L.push("");
     L.push("WHAT HE ACTUALLY LIKED (played & rated — use this to prioritize!)");
     var fav=PURE.favorites(S);
-    var catName={powers:"Powers",enemies:"Enemies",hazards:"Traps",bossAttacks:"Boss moves"};
-    ["powers","enemies","hazards","bossAttacks"].forEach(function(cat){
+    var catName={powers:"Powers",enemies:"Enemies",hazards:"Traps",bossAttacks:"Boss moves",math:"Math games",custom:"His own powers"};
+    var cats=["powers","enemies","hazards","bossAttacks","math","custom"];
+    cats.forEach(function(cat){
       if(fav[cat].length){
         L.push("  "+catName[cat]+":");
         fav[cat].forEach(function(it){ L.push("    "+["","⭐","⭐⭐","⭐⭐⭐"][it.r]+" "+PURE.ratingLabel(it.r)+" — "+it.name); });
       }
     });
-    if(!["powers","enemies","hazards","bossAttacks"].some(function(c){return fav[c].length;})) L.push("  (nothing rated yet)");
+    if(!cats.some(function(c){return fav[c].length;})) L.push("  (nothing rated yet)");
     L.push("");
     L.push("HIS DREAM  "+(S.done.dream?"✅":""));
     if(S.dream.cool) L.push("  Coolest thing: "+S.dream.cool);
@@ -528,6 +748,13 @@ var PURE = {
     L.push("  Kinds of math: "+(S.learn.kinds.join(", ")||"?"));
     L.push("  Show up as: "+(S.learn.systems.join(", ")||"?"));
     if(S.learn.notes) L.push("  His words: "+S.learn.notes);
+    L.push("");
+    L.push("THE SEQUEL (he asked for this!)  "+(S.done.sequel?"✅":""));
+    L.push("  Where: "+(S.sequel.where||"?"));
+    L.push("  Starts: "+(S.sequel.start||"?"));
+    L.push("  New power: "+(S.sequel.newPower||"?"));
+    L.push("  New boss: "+(S.sequel.newBoss||"?"));
+    if(S.sequel.notes) L.push("  His words: "+S.sequel.notes);
     L.push("");
     L.push("raw: "+JSON.stringify(S));
     return L.join("\n");
@@ -725,11 +952,15 @@ function show(id){
   if(id==="scr-challenge")refreshChallenge();
   if(id==="scr-dream")refreshDream();
   if(id==="scr-learn")refreshLearn();
+  if(id==="scr-friends")refreshFriends();
+  if(id==="scr-sequel")refreshSequel();
+  if(id==="scr-fixit")refreshFixit();
+  if(id==="scr-new")refreshNew();
   window.scrollTo(0,0);
 }
 backBtn.addEventListener("click",function(){ show("scr-hub"); });
 document.querySelectorAll("[data-nav]").forEach(function(el){ el.addEventListener("click",function(){ show(el.getAttribute("data-nav")); }); });
-["hero","world","journey","challenge","dream","learn"].forEach(function(k){
+["hero","world","journey","challenge","dream","learn","friends","sequel","fixit","new"].forEach(function(k){
   document.getElementById(k+"Back").addEventListener("click",function(){ confetti(); show("scr-hub"); });
 });
 document.querySelectorAll("[data-done]").forEach(function(el){
@@ -743,9 +974,15 @@ document.querySelectorAll("[data-done]").forEach(function(el){
 function refreshHubQuiet(){ /* keep the hub Game Sheet in sync without leaving the builder */ if(document.getElementById("scr-hub").classList.contains("on")) refreshHub(); }
 function refreshHub(){
   var pr=PURE.progress(S);
-  ["hero","world","journey","challenge","dream","learn"].forEach(function(k){
+  ["hero","world","journey","challenge","dream","learn","friends","sequel"].forEach(function(k){
     document.getElementById("prog-"+k).textContent=PURE.progIcon(pr[k],S.done[k]);
   });
+  var nb=PURE.comments(S).filter(function(c){return c.bug;}).length;
+  document.getElementById("prog-fixit").textContent=nb?("🐛"+nb):"○";
+  var ratedIdeas=PURE.NEW_IDEAS.filter(function(it){return S.ideaRatings[it.id]>0;}).length, totIdeas=PURE.NEW_IDEAS.length;
+  document.getElementById("prog-new").textContent= ratedIdeas>=totIdeas?"✅":(ratedIdeas+"/"+totIdeas);
+  var un=PURE.untried(S);
+  document.getElementById("newDesc").textContent = ratedIdeas>=totIdeas ? "You rated every new idea!" : (totIdeas-ratedIdeas)+" new things to try & rate · "+(PURE.demoTotal()-un.demos.length)+"/"+PURE.demoTotal()+" demos played";
   var sheet=document.getElementById("gameSheet"); sheet.innerHTML="";
   var h=document.createElement("h2"); h.textContent="⭐ YOUR GAME SO FAR ⭐"; sheet.appendChild(h);
   function row(k,v,empty){
@@ -769,7 +1006,11 @@ function refreshHub(){
     PURE.hasBody(S.challenge.bossParts)?"a boss":""
   ].filter(Boolean).join(", "), "not made yet"));
   sheet.appendChild(row("Dream", S.dream.cool, "not made yet"));
+  sheet.appendChild(row("Team", [S.friends.robotName?("🤖 "+S.friends.robotName):"",S.friends.friendName?("🧑 "+S.friends.friendName):"",S.friends.petName?("🐾 "+S.friends.petName):""].filter(Boolean).join(", "), "no team yet"));
   sheet.appendChild(row("Brain", S.learn.want?(S.learn.want+(S.learn.kinds.length?" ("+S.learn.kinds.length+" math)":"")):"", "not picked yet"));
+  sheet.appendChild(row("Sequel", [S.sequel.where,S.sequel.newBoss].filter(Boolean).join(" · "), "not planned yet"));
+  var nbugs=PURE.comments(S).filter(function(c){return c.bug;}).length;
+  sheet.appendChild(row("Bugs", nbugs?(nbugs+" flagged for Dad 🐛"):"", "none found yet"));
 }
 
 // ---------- HERO ----------
@@ -850,7 +1091,8 @@ function drawLook(){
 
 // ---------- JOURNEY ----------
 function refreshJourney(){
-  renderQuestions("journeyQs",PURE.JOURNEY_Q,S.journey,function(){});
+  renderQuestions("journeyQs",PURE.JOURNEY_Q,S.journey,function(){ refreshHubQuiet(); });
+  renderQuestions("piecesQs",PURE.PIECES_Q,S.journey,function(){ refreshHubQuiet(); });
   document.getElementById("storyBig").value=S.journey.story;
   document.querySelector('[data-done="journey"]').classList.toggle("on",S.done.journey);
 }
@@ -869,14 +1111,15 @@ function renderRated(containerId, options, pickArr, cat, demoTable){
       var i=pickArr.indexOf(name); if(i>=0)pickArr.splice(i,1); else pickArr.push(name);
       save(); nameBtn.classList.toggle("sel"); refreshHubQuiet();
     });
-    var tryBtn=document.createElement("button"); tryBtn.className="tryBtn"; tryBtn.textContent="▶ Try";
+    var tryBtn=document.createElement("button"); tryBtn.className="tryBtn"; tryBtn.textContent="▶ PLAY IT";
     var demo=demoTable[name];
+    if(!S.ratings[cat])S.ratings[cat]={};
     tryBtn.addEventListener("click",function(){
       if(!demo)return;
       PG.open(demo,cat,name,function(){
-        // rating implies the item is "in": ensure it's picked
         if(pickArr.indexOf(name)<0){ pickArr.push(name); nameBtn.classList.add("sel"); }
         paintOptStars(stars,(S.ratings[cat]&&S.ratings[cat][name])||0);
+        paintNote();
         save(); refreshHubQuiet();
       });
     });
@@ -887,7 +1130,13 @@ function renderRated(containerId, options, pickArr, cat, demoTable){
         save(); paintOptStars(stars,v); refreshHubQuiet(); });
       stars.appendChild(sp); });
     paintOptStars(stars,(S.ratings[cat]&&S.ratings[cat][name])||0);
-    var hint=document.createElement("div"); hint.className="optHint"; hint.textContent="Play it, then give it stars!";
+    var hint=document.createElement("div"); hint.className="optHint";
+    function paintNote(){
+      var f=(S.feedback[cat]&&S.feedback[cat][name])||null;
+      if(f&&(f.comment||f.bug)){ hint.textContent=(f.bug?"🐛 BUG: ":"💬 ")+(f.comment||"flagged"); hint.style.opacity="1"; hint.style.color=f.bug?"#FF8A8A":"inherit"; }
+      else { hint.textContent="Play it, give it stars, and say what you'd change!"; hint.style.opacity=".6"; hint.style.color="inherit"; }
+    }
+    paintNote();
     card.appendChild(top); card.appendChild(stars); card.appendChild(hint);
     c.appendChild(card);
   });
@@ -929,6 +1178,11 @@ function refreshChallenge(){
   // boss attacks as rated cards (Try shows the attack)
   renderRated("bossAttacks", PURE.BOSS_ATTACKS, S.challenge.bossAttacks, "bossAttacks", PURE.BOSS_DEMOS);
   document.getElementById("bossNote").value=S.challenge.bossNote;
+  // his own invented power: playable rock/ice + name + what it does
+  renderRated("customDemos", Object.keys(PURE.CUSTOM_DEMOS), S.custom.does, "custom", PURE.CUSTOM_DEMOS);
+  bindText("customName",function(){return S.custom.name;},function(v){S.custom.name=v;});
+  renderQuestions("customQs",PURE.CUSTOM_Q,S.custom,function(){ refreshHubQuiet(); });
+  bindText("customNotes",function(){return S.custom.notes;},function(v){S.custom.notes=v;});
   document.querySelector('[data-done="challenge"]').classList.toggle("on",S.done.challenge);
 }
 function mkQ(text){ var d=document.createElement("div"); d.className="q"; d.textContent=text; return d; }
@@ -959,17 +1213,100 @@ document.getElementById("dreamSecret").addEventListener("input",function(e){S.dr
 // ---------- LEARN (Brain Boosts) ----------
 function refreshLearn(){
   renderQuestions("learnQs",PURE.LEARN_Q,S.learn,function(){ refreshHubQuiet(); });
-  if(!document.getElementById("learnNotesField")){
-    var host=document.getElementById("learnNotes");
-    host.id="learnNotesField";
-    host.value=S.learn.notes;
-    host.addEventListener("input",function(e){S.learn.notes=e.target.value;save();});
-  }
+  renderRated("mathDemos", Object.keys(PURE.MATH_DEMOS), S.learn.systems, "math", PURE.MATH_DEMOS);
+  bindText("learnNotes", function(){return S.learn.notes;}, function(v){S.learn.notes=v;});
   document.querySelector('[data-done="learn"]').classList.toggle("on",S.done.learn);
+}
+// bind a text input to state once (idempotent)
+function bindText(id,get,set){
+  var el=document.getElementById(id); if(!el)return;
+  el.value=get()||"";
+  if(el._bt)return; el._bt=true;
+  el.addEventListener("input",function(e){ set(e.target.value); save(); refreshHubQuiet(); });
+}
+
+// ---------- FRIENDS & HELPERS ----------
+function refreshFriends(){
+  bindText("robotName",function(){return S.friends.robotName;},function(v){S.friends.robotName=v;});
+  bindText("friendName",function(){return S.friends.friendName;},function(v){S.friends.friendName=v;});
+  bindText("petName",function(){return S.friends.petName;},function(v){S.friends.petName=v;});
+  renderQuestions("friendsQs",PURE.FRIENDS_Q,S.friends,function(){ refreshHubQuiet(); });
+  bindText("friendsNotes",function(){return S.friends.notes;},function(v){S.friends.notes=v;});
+  document.querySelector('[data-done="friends"]').classList.toggle("on",S.done.friends);
+}
+
+// ---------- SEQUEL ----------
+function refreshSequel(){
+  renderQuestions("sequelQs",PURE.SEQUEL_Q,S.sequel,function(){ refreshHubQuiet(); });
+  bindText("sequelNotes",function(){return S.sequel.notes;},function(v){S.sequel.notes=v;});
+  document.querySelector('[data-done="sequel"]').classList.toggle("on",S.done.sequel);
+}
+
+// ---------- FIX-IT ----------
+function refreshFixit(){
+  var list=document.getElementById("fixitList"); list.innerHTML="";
+  var cm=PURE.comments(S), bugs=cm.filter(function(c){return c.bug;});
+  if(!bugs.length){ list.innerHTML='<div class="mini">No bugs flagged yet. When you play something and it feels wrong, tap 🐛 It\'s a bug!</div>'; }
+  bugs.forEach(function(c){
+    var d=document.createElement("div"); d.className="scene";
+    d.innerHTML='<div class="st">🐛 '+c.name+'</div><div style="font-size:14px;">'+(c.comment||"(no details yet — go back and say what's wrong!)")+'</div>';
+    list.appendChild(d);
+  });
+  bindText("fixitNotes",function(){return S.fixit.notes;},function(v){S.fixit.notes=v;});
+}
+
+// ---------- WHAT'S NEW tour ----------
+function refreshNew(){
+  var list=document.getElementById("newList"); list.innerHTML="";
+  PURE.NEW_IDEAS.forEach(function(it){
+    var card=document.createElement("div"); card.className="optCard";
+    var top=document.createElement("div"); top.className="optTop";
+    var nm=document.createElement("div"); nm.style.cssText="flex:1;font-weight:900;font-size:15px;"; nm.textContent=it.emoji+" "+it.title;
+    var go=document.createElement("button"); go.className="tryBtn"; go.textContent="▶ GO";
+    go.addEventListener("click",function(){ show(it.nav); });
+    top.appendChild(nm); top.appendChild(go);
+    var desc=document.createElement("div"); desc.style.cssText="font-size:13px;opacity:.85;margin:6px 0;"; desc.textContent=it.desc;
+    var stars=document.createElement("div"); stars.className="optStars";
+    [1,2,3].forEach(function(v){ var sp=document.createElement("span"); sp.setAttribute("data-s",v);
+      sp.addEventListener("click",function(){ S.ideaRatings[it.id]=v; save(); paintOptStars(stars,v); refreshNewProgress(); confetti(); });
+      stars.appendChild(sp); });
+    paintOptStars(stars,S.ideaRatings[it.id]||0);
+    var inp=document.createElement("input"); inp.type="text"; inp.placeholder="🎤 What do you think? Anything to change?";
+    inp.value=S.ideaComments[it.id]||"";
+    inp.addEventListener("input",function(e){ S.ideaComments[it.id]=e.target.value; save(); });
+    card.appendChild(top); card.appendChild(desc); card.appendChild(stars); card.appendChild(inp);
+    list.appendChild(card);
+  });
+  refreshNewProgress();
+}
+function refreshNewProgress(){
+  var rated=PURE.NEW_IDEAS.filter(function(it){return S.ideaRatings[it.id]>0;}).length;
+  document.getElementById("newProgress").textContent= rated>=PURE.NEW_IDEAS.length ? "🌟 You rated ALL the new ideas! Dad will love this." : "Rated "+rated+" of "+PURE.NEW_IDEAS.length+" new ideas. Give stars to each one!";
+}
+// "Did I do everything?" checklist shown before the export
+function renderDadCheck(){
+  var box=document.getElementById("dadCheck"); box.innerHTML="";
+  var un=PURE.untried(S), total=PURE.demoTotal(), played=total-un.demos.length;
+  var h=document.createElement("div"); h.className="q"; h.style.marginTop="0";
+  var allDone=!un.demos.length&&!un.ideas.length&&!un.sections.length;
+  h.textContent= allDone ? "✅ You did EVERYTHING! Dad has all your answers." : "⏳ Did you do everything? Here's what's left:";
+  box.appendChild(h);
+  function line(txt,nav){ var d=document.createElement("div"); d.className="scene"; d.style.display="flex"; d.style.alignItems="center"; d.style.gap="8px";
+    var t=document.createElement("div"); t.style.flex="1"; t.style.fontSize="14px"; t.style.fontWeight="800"; t.textContent=txt;
+    d.appendChild(t); if(nav){ var b=document.createElement("button"); b.className="tryBtn"; b.textContent="▶ GO"; b.addEventListener("click",function(){show(nav);}); d.appendChild(b); }
+    box.appendChild(d); }
+  var p=document.createElement("div"); p.className="mini"; p.textContent="Demos played & rated: "+played+" of "+total; box.appendChild(p);
+  if(un.ideas.length) line("🆕 "+un.ideas.length+" new idea"+(un.ideas.length>1?"s":"")+" not rated yet","scr-new");
+  un.sections.forEach(function(sec){ var nav={"Friends & Helpers":"scr-friends","Magic Pieces":"scr-journey","The Sequel":"scr-sequel","Your own power":"scr-challenge"}[sec]; line("📝 "+sec+" not started",nav); });
+  if(un.demos.length){ var byCat={}; un.demos.forEach(function(d){ (byCat[d.cat]=byCat[d.cat]||[]).push(d.name); });
+    var navFor={powers:"scr-challenge",enemies:"scr-challenge",hazards:"scr-challenge",bossAttacks:"scr-challenge",custom:"scr-challenge",math:"scr-learn"};
+    var label={powers:"Powers",enemies:"Enemies",hazards:"Traps",bossAttacks:"Boss moves",custom:"Your own power",math:"Math games"};
+    for(var c in byCat) line("🎮 "+label[c]+": "+byCat[c].length+" not played ("+byCat[c].slice(0,3).join(", ")+(byCat[c].length>3?"…":"")+")",navFor[c]); }
+  if(!allDone){ var n=document.createElement("div"); n.className="mini"; n.style.marginTop="8px"; n.textContent="It's OK to send it anyway. But the more you try, the better Dad can build it!"; box.appendChild(n); }
 }
 
 // ---------- DAD ----------
-function showDad(){ document.getElementById("dadText").textContent=PURE.summary(S); show("scr-dad"); }
+function showDad(){ renderDadCheck(); document.getElementById("dadText").textContent=PURE.summary(S); show("scr-dad"); }
 document.getElementById("dadBtn").addEventListener("click",showDad);
 document.getElementById("copyBtn").addEventListener("click",function(){
   var t=PURE.summary(S);
@@ -1000,12 +1337,13 @@ var PG=(function(){
     function fl(x0,x1){for(var x=x0;x<=x1;x++){g[7][x]="#";g[8][x]="#";}}
     fl(0,W-1);
     things={enemies:[],projectiles:[],targets:[],blocks:[],boss:null,items:[],saw:null,crusher:null,mover:null,dark:false,water:null,lava:null,ice:null};
-    parts2={power:null,dbl:false,jumps:0,dashCd:0,shield:0,climbing:false};
+    parts2={power:null,dbl:false,jumps:0,dashCd:0,shield:0,climbing:false,rock:0,ice:0,dblQueued:false};
     msg="";
     var d=demo;
     if(d.power){
       parts2.power=d.power;
-      if(d.scene==="ledge"){ for(var x=11;x<=17;x++){g[4][x]="#";g[5][x]="#";g[6][x]="#";g[7][x]="#";g[8][x]="#";} g[3][15]="S"; }
+      if(d.scene==="ledge"){ for(var x=11;x<=17;x++){g[3][x]="#";g[4][x]="#";g[5][x]="#";g[6][x]="#";g[7][x]="#";g[8][x]="#";} g[2][15]="S"; }
+      else if(d.scene==="tallLedge"){ for(var x=11;x<=17;x++){g[2][x]="#";g[3][x]="#";g[4][x]="#";g[5][x]="#";g[6][x]="#";g[7][x]="#";g[8][x]="#";} g[1][15]="S"; }
       else if(d.scene==="gap"){ for(var x=6;x<=12;x++){g[7][x]=".";g[8][x]=".";} }
       else if(d.scene==="pit"){ for(var x=5;x<=13;x++){g[7][x]=".";g[8][x]=".";} }
       else if(d.scene==="block"){ g[6][9]="B"; g[6][10]="B"; }
@@ -1039,8 +1377,12 @@ var PG=(function(){
   function step(){
     tSpr++;
     var onIce=false; var below=solid(P.x+P.w/2,P.y+P.h+2); if(below==="~")onIce=true;
-    var aG=onIce?0.16:C.aG, fr=onIce?0.98:C.fric;
-    var mr=C.maxRun*(parts2.power==="dash"&&parts2.dashCd>34?1.7:1);
+    if(parts2.rock>0)parts2.rock--; if(parts2.ice>0)parts2.ice--;
+    var isRock=parts2.rock>0, isIce=parts2.ice>0;
+    if(isIce)onIce=true;
+    var aG=onIce?0.16:C.aG, fr=onIce?0.985:C.fric;
+    if(isRock){aG=0.03;fr=0.7;}
+    var mr=C.maxRun*(parts2.power==="dash"&&parts2.dashCd>34?1.7:(isIce?1.9:1));
     if(IN.left){P.vx-=(P.onG?aG:C.aA)*((P.vx>0)?C.turn:1);if(P.vx<-mr)P.vx=-mr;P.face=-1;}
     if(IN.right){P.vx+=(P.onG?aG:C.aA)*((P.vx<0)?C.turn:1);if(P.vx>mr)P.vx=mr;P.face=1;}
     if(!IN.left&&!IN.right)P.vx*=P.onG?fr:C.drag;
@@ -1052,16 +1394,22 @@ var PG=(function(){
     if(P.invuln>0)P.invuln--;
     if(parts2.shield>0)parts2.shield--;
     // jump / double jump / swim / climb
-    if(IN.jump&&!IN._jlast){
+    if(IN.jump&&!IN._jlast&&!(parts2.rock>0)){
       if(inWater){ P.vy=-4.2; }
-      else if(P.coyote>0){ P.vy=C.jumpV;P.coyote=0;P.sq=1.35;parts2.jumps=1; }
-      else if(parts2.power==="double_jump"&&parts2.jumps===1){ P.vy=C.jumpV*0.92;parts2.jumps=2;P.sq=1.3; }
+      else if(P.coyote>0){ P.vy=(parts2.power==="super_jump")?C.jumpV*1.32:C.jumpV;P.coyote=0;P.sq=1.35;parts2.jumps=1; }
+      else if(parts2.power==="double_jump"&&parts2.jumps===1){
+        if(P.vy<-3){ parts2.dblQueued=true; }            // pressed early: fire it at the apex for max height
+        else { P.vy=C.jumpV;parts2.jumps=2;P.sq=1.3; }
+      }
     }
     IN._jlast=IN.jump;
+    if(parts2.dblQueued&&parts2.jumps===1&&!P.onG&&P.vy>=-3){ P.vy=C.jumpV;parts2.jumps=2;P.sq=1.3;parts2.dblQueued=false;msgFlash("DOUBLE!"); }
     // action button (edge)
     if(IN.actionEdge){
       IN.actionEdge=false;
       if(parts2.power==="dash"){ P.vx=P.face*10; parts2.dashCd=40; }
+      else if(parts2.power==="rock"){ parts2.rock=parts2.rock>0?0:120; if(parts2.rock)msgFlash("ROCK!"); }
+      else if(parts2.power==="iceform"){ parts2.ice=parts2.ice>0?0:150; if(parts2.ice){P.vx=P.face*8;msgFlash("ICE!");} }
       else if(parts2.power==="smash"&&!P.onG){ P.vy=14; parts2.smashing=true; }
       else if(parts2.power==="fireball"){ things.projectiles.push({x:P.x+P.w/2,y:P.y+P.h/2,vx:P.face*8,life:60}); }
       else if(parts2.power==="shield"){ parts2.shield=90; }
@@ -1078,7 +1426,7 @@ var PG=(function(){
       if(touchWall&&pushing&&!P.onG){ P.vy=-2.4; parts2.climbing=true; } else parts2.climbing=false;
     }
     moveH(); moveV();
-    if(P.onG){parts2.jumps=0;parts2.smashing=false;}
+    if(P.onG){parts2.jumps=0;parts2.smashing=false;parts2.dblQueued=false;}
     P.sq+=(1-P.sq)*0.18;
     if(Math.abs(P.vx)>0.4&&P.onG)P.anim+=0.25;else P.anim+=0.05;
     // smash breaks block on contact
@@ -1087,7 +1435,7 @@ var PG=(function(){
       if(LV[ty]&&LV[ty][tx]==="B"){ LV[ty][tx]="."; P.vy=-6; parts2.smashing=false; msgFlash("SMASH!"); } }
     // hazards from grid
     var hz=[[P.x+P.w/2,P.y+P.h-1],[P.x+P.w/2,P.y+2]];
-    for(var i=0;i<hz.length;i++){ var c=solid(hz[i][0],hz[i][1]); if(c==="^"||c==="L"){ if(parts2.shield<=0)hurt(); } }
+    for(var i=0;i<hz.length;i++){ var c=solid(hz[i][0],hz[i][1]); if(c==="^"||c==="L"){ if(parts2.shield<=0&&!(parts2.rock>0))hurt(); } }
     if(P.y>LV.length*TILE+80)hurt();
     // targets (fireball)
     things.projectiles.forEach(function(pr){ pr.x+=pr.vx; pr.life--;
@@ -1104,6 +1452,7 @@ var PG=(function(){
       if(IN.action&&aabb(bop,eb)&&!e.spiky){e.alive=false;msgFlash("BOP!");return;}
       if(aabb(P,eb)){ var stomp=P.vy>1&&(P.y+P.h)<(e.y+e.h*0.6);
         if(stomp&&!e.spiky){e.alive=false;P.vy=-7;msgFlash("SQUISH!");}
+        else if(parts2.rock>0){e.alive=false;msgFlash("CRUSHED!");}
         else hurt(); }
     });
     // saw
@@ -1194,7 +1543,9 @@ var PG=(function(){
     // hero
     if(!(P.invuln>0&&Math.floor(P.invuln/4)%2===0)){
       ctx.save(); ctx.translate(P.x+P.w/2,P.y+P.h); ctx.scale((2-P.sq),P.sq);
-      ctx.fillStyle=heroCol; ctx.beginPath(); ctx.arc(0,-P.h/2,P.w/2+3,0,6.29); ctx.fill();
+      if(parts2.rock>0){ ctx.fillStyle="#7A7F8C"; ctx.fillRect(-P.w/2-3,-P.h-1,P.w+6,P.h+2); ctx.fillStyle="#5A5F6C"; ctx.fillRect(-P.w/2,-P.h+4,6,5); ctx.fillRect(3,-P.h/2,7,5); }
+      else if(parts2.ice>0){ ctx.fillStyle="#BFEBFF"; ctx.beginPath(); ctx.arc(0,-P.h/2,P.w/2+3,0,6.29); ctx.fill(); ctx.fillStyle="rgba(255,255,255,.8)"; ctx.fillRect(-8,-P.h+3,5,8); }
+      else { ctx.fillStyle=heroCol; ctx.beginPath(); ctx.arc(0,-P.h/2,P.w/2+3,0,6.29); ctx.fill(); }
       ctx.fillStyle="#fff"; ctx.fillRect(-9,-P.h/2-3,7,7); ctx.fillRect(3,-P.h/2-3,7,7);
       ctx.fillStyle="#15242E"; ctx.fillRect(-6,-P.h/2-1,3,3); ctx.fillRect(5,-P.h/2-1,3,3);
       ctx.restore();
@@ -1222,24 +1573,32 @@ var PG=(function(){
       if(setName==="action")IN.action=false; else {IN[setName]=false; if(setName==="jump")IN.jumpHeld=false;} }); });
   }
   var bound=false;
+  function fb(){ if(!S.feedback[cat])S.feedback[cat]={}; if(!S.feedback[cat][itemName])S.feedback[cat][itemName]={comment:"",bug:false}; return S.feedback[cat][itemName]; }
   function open(d,category,name,rateCb){
     demo=d; cat=category; itemName=name; onRate=rateCb;
+    if(!S.ratings[cat])S.ratings[cat]={};
     cv=el("pgCanvas"); ctx=cv.getContext("2d");
     el("pgTitle").textContent="Try: "+d.title;
     el("pgTip").textContent=d.tip;
     var act=el("pgAction");
     if(d.action){ act.classList.remove("hidden"); act.textContent=d.action; } else act.classList.add("hidden");
-    // stars reflect existing rating
     var cur=(S.ratings[cat]&&S.ratings[cat][name])||0;
     paintStars(cur);
+    var f=fb(); el("pgComment").value=f.comment||""; el("pgBug").classList.toggle("on",!!f.bug);
     if(!bound){ bound=true;
       bindBtn("pgLeft","left"); bindBtn("pgRight","right"); bindBtn("pgJump","jump"); bindBtn("pgAction","action");
       el("pgClose").addEventListener("click",close);
       el("pgDone").addEventListener("click",close);
       el("pgStars").addEventListener("click",function(e){ var s=e.target.getAttribute("data-s"); if(!s)return;
         s=parseInt(s,10); S.ratings[cat][itemName]=s; save(); paintStars(s); if(onRate)onRate(); confetti(); });
+      el("pgComment").addEventListener("input",function(e){ fb().comment=e.target.value; save(); if(onRate)onRate(); });
+      el("pgBug").addEventListener("click",function(){ var x=fb(); x.bug=!x.bug; save(); el("pgBug").classList.toggle("on",x.bug); if(onRate)onRate(); });
     }
     el("pgOverlay").classList.remove("hidden");
+    // math minigames use a DOM panel instead of the platformer
+    var mathPanel=el("pgMath"), ctrls=el("pgControls");
+    if(d.math){ mathPanel.classList.remove("hidden"); ctrls.classList.add("hidden"); running=false; MATH.start(d.math,mathPanel); return; }
+    mathPanel.classList.add("hidden"); ctrls.classList.remove("hidden");
     setup(); running=true; lastT=0; acc=0; raf=requestAnimationFrame(loop);
   }
   function paintStars(n){ var sp=el("pgStars").querySelectorAll("span"); sp.forEach(function(s){ var v=parseInt(s.getAttribute("data-s"),10); s.textContent=v<=n?"★":"☆"; s.classList.toggle("on",v<=n); }); }
@@ -1247,6 +1606,59 @@ var PG=(function(){
     IN.left=IN.right=IN.jump=IN.jumpHeld=IN.action=false;
     el("pgOverlay").classList.add("hidden"); }
   return {open:open,close:close,C:C};
+})();
+
+// ---------- MATH minigames (playable, tap-based) ----------
+var MATH=(function(){
+  function start(kind,host){ host.innerHTML=""; if(kind==="share")share(host); else groups(host); }
+  function share(host){
+    // division as sharing: a pile of gems, N friends, give equally
+    var friends=[2,3,4][Math.floor(Math.random()*3)];
+    var per=[2,3,4][Math.floor(Math.random()*3)];
+    var pile=friends*per, given=new Array(friends).fill(0);
+    var t=document.createElement("div"); t.className="mTitle"; t.textContent="You found "+pile+" gems! Share them with "+friends+" friends."; host.appendChild(t);
+    var pl=document.createElement("div"); pl.className="mPile"; host.appendChild(pl);
+    var row=document.createElement("div"); row.className="mRow"; host.appendChild(row);
+    var big=document.createElement("div"); big.className="mBig"; host.appendChild(big);
+    var faces=["🤖","👽","🐶","🐱"];
+    var cards=[];
+    for(var i=0;i<friends;i++){ (function(i){
+      var c=document.createElement("div"); c.className="mFriend";
+      c.innerHTML='<div class="face">'+faces[i]+'</div><div class="cnt">0</div>';
+      c.addEventListener("click",function(){ if(pile<=0)return; pile--; given[i]++; render(); });
+      row.appendChild(c); cards.push(c); })(i); }
+    function render(){
+      pl.textContent="Gems left: "+"💎".repeat(Math.min(pile,12))+(pile>12?" +"+(pile-12):"")+(pile===0?" (none)":"");
+      cards.forEach(function(c,i){ c.querySelector(".cnt").textContent=given[i]; });
+      if(pile===0){
+        var equal=given.every(function(g){return g===given[0];});
+        big.textContent = equal ? "🎉 FAIR! Everyone got "+given[0]+". "+(friends*per)+" ÷ "+friends+" = "+per : "Hmm, not the same! Try again?";
+        if(!equal){ var b=document.createElement("button"); b.className="mBtn"; b.textContent="↩️ Try again"; b.addEventListener("click",function(){ share(host); }); host.appendChild(b); }
+        else confetti();
+      } else big.textContent="";
+    }
+    render();
+  }
+  function groups(host){
+    // multiples as grouping: tap stars, they auto-pack into groups of N
+    var n=[2,5,10][Math.floor(Math.random()*3)], got=0, target=n*3;
+    var t=document.createElement("div"); t.className="mTitle"; t.textContent="Grab stars! They pack into groups of "+n+"."; host.appendChild(t);
+    var st=document.createElement("div"); st.className="mStar"; st.textContent="⭐"; host.appendChild(st);
+    var gr=document.createElement("div"); gr.className="mGroups"; host.appendChild(gr);
+    var big=document.createElement("div"); big.className="mBig"; host.appendChild(big);
+    st.addEventListener("click",function(){ if(got>=target)return; got++; render(); });
+    function render(){
+      gr.innerHTML="";
+      var full=Math.floor(got/n), rest=got%n;
+      for(var i=0;i<full;i++){ var g=document.createElement("div"); g.className="mGroup"; g.textContent="⭐".repeat(n)+" = "+n; gr.appendChild(g); }
+      if(rest){ var r=document.createElement("div"); r.className="mGroup"; r.textContent="⭐".repeat(rest); gr.appendChild(r); }
+      var count=[]; for(var k=1;k<=full;k++)count.push(k*n);
+      big.textContent = got>=target ? "🎉 "+full+" groups of "+n+" = "+got+"! Counting by "+n+"s: "+count.join(", ") : (full?("Counting by "+n+"s: "+count.join(", ")):"Tap the star!");
+      if(got>=target)confetti();
+    }
+    render();
+  }
+  return {start:start};
 })();
 
 function confetti(){
