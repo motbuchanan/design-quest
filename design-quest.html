@@ -179,7 +179,7 @@
 </style>
 </head>
 <body>
-<div class="badge">DESIGN QUEST · PLANNER v10 · Sep 6</div>
+<div class="badge">DESIGN QUEST · PLANNER v11 · Sep 6</div>
 <button class="back" id="backBtn" style="display:none">◀ Back</button>
 <div class="wrap">
 
@@ -881,7 +881,7 @@ function transformable(el,inner,stage,p,d,partsRef,onChange){
   function dist(a,b){return Math.hypot(b.x-a.x,b.y-a.y);}
   function ang(a,b){return Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI;}
   el.addEventListener("pointerdown",function(e){
-    el.setPointerCapture(e.pointerId); pts[e.pointerId]={x:e.clientX,y:e.clientY}; cnt++;
+    try{el.setPointerCapture(e.pointerId);}catch(x){} pts[e.pointerId]={x:e.clientX,y:e.clientY}; cnt++;
     if(cnt===1){ single={sx:e.clientX,sy:e.clientY,ox:parseFloat(el.style.left)||0,oy:parseFloat(el.style.top)||0,moved:0}; el.classList.add("drag"); }
     else if(cnt===2){ single=null; var ab=two(); gesture={d0:Math.max(10,dist(ab[0],ab[1])),a0:ang(ab[0],ab[1]),s0:p.s||1,r0:p.r||0}; }
     e.preventDefault();
@@ -1610,11 +1610,14 @@ var PG=(function(){
   function aabb(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
   var flashT=0;
   function msgFlash(m){ msg=m; flashT=40; }
-  function scale(){ var w=cv.clientWidth||stageSize().w; return w/(10*TILE); }
+  function scale(){ var sz=stageSize(); var w=cv.clientWidth||sz.w, h=cv.clientHeight||sz.h;
+    var rows=(LV&&LV.length)||9; return Math.max(0.4, Math.min(w/(10*TILE), h/(rows*TILE))); }
+  // vertical offset: anchor the floor to the bottom of the canvas, sky above
+  function offY(){ var sz=stageSize(); var h=cv.clientHeight||sz.h; var rows=(LV&&LV.length)||9; return Math.max(0, h/scale()-rows*TILE); }
   function draw(){
     var W=cv.clientWidth||stageSize().w,H=cv.clientHeight||stageSize().h; if(flashT>0)flashT--;
     ctx.fillStyle="#0B1424"; ctx.fillRect(0,0,W,H);
-    ctx.save(); var sc=scale(); ctx.scale(sc,sc); ctx.translate(-cam,0);
+    ctx.save(); var sc=scale(); var oy=offY(); ctx.scale(sc,sc); ctx.translate(-cam,oy);
     // tiles
     for(var y=0;y<LV.length;y++)for(var x=0;x<LV[0].length;x++){ var c=LV[y][x];
       if(c==="#"){ctx.fillStyle="#2E4770";ctx.fillRect(x*TILE,y*TILE,TILE,TILE);ctx.fillStyle="#456099";ctx.fillRect(x*TILE,y*TILE,TILE,5);}
@@ -1662,7 +1665,7 @@ var PG=(function(){
     }
     ctx.restore();
     // dark overlay
-    if(things.dark){ var gr=ctx.createRadialGradient((P.x-cam)*sc+P.w/2*sc,P.y*sc+P.h/2*sc,10,(P.x-cam)*sc+P.w/2*sc,P.y*sc+P.h/2*sc,150);
+    if(things.dark){ var hx=(P.x-cam+P.w/2)*sc, hy=(P.y+oy+P.h/2)*sc; var gr=ctx.createRadialGradient(hx,hy,10,hx,hy,150);
       gr.addColorStop(0,"rgba(0,0,0,0)");gr.addColorStop(1,"rgba(0,0,0,.92)"); ctx.fillStyle=gr; ctx.fillRect(0,0,W,H); }
     // flash msg
     if(flashT>0){ ctx.font="900 26px sans-serif";ctx.textAlign="center";ctx.fillStyle="#FFD24A";ctx.fillText(msg,W/2,H*0.3);ctx.textAlign="left"; }
@@ -1696,7 +1699,7 @@ var PG=(function(){
     if(cv.width!==Math.round(sz.w*dpr)||cv.height!==Math.round(sz.h*dpr)){
       cv.width=Math.round(sz.w*dpr); cv.height=Math.round(sz.h*dpr); ctx.setTransform(dpr,0,0,dpr,0,0); } }
   function bindBtn(id,setName){ var b=el(id);
-    b.addEventListener("pointerdown",function(e){e.preventDefault();b.setPointerCapture(e.pointerId);b.classList.add("held");
+    b.addEventListener("pointerdown",function(e){e.preventDefault();try{b.setPointerCapture(e.pointerId);}catch(x){}b.classList.add("held");
       if(setName==="action"){IN.action=true;IN.actionEdge=true;}else{IN[setName]=true; if(setName==="jump")IN.jumpHeld=true;} });
     ["pointerup","pointercancel"].forEach(function(ev){ b.addEventListener(ev,function(){b.classList.remove("held");
       if(setName==="action")IN.action=false; else {IN[setName]=false; if(setName==="jump")IN.jumpHeld=false;} }); });
