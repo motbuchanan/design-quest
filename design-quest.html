@@ -127,8 +127,8 @@
   .pgClose{width:40px;height:40px;border-radius:50%;border:3px solid var(--ink);background:var(--card);
     color:var(--ink);font-size:18px;font-weight:900;cursor:pointer;}
   .pgTip{text-align:center;font-size:14px;font-weight:700;padding:0 16px 8px;opacity:.95;min-height:20px;}
-  .pgStageWrap{flex:1;min-height:0;margin:0 10px;border:3px solid var(--ink);border-radius:14px;overflow:hidden;background:#0B1424;}
-  #pgCanvas{display:block;width:100%;height:100%;}
+  .pgStageWrap{position:relative;flex:1 1 auto;min-height:220px;margin:0 10px;border:3px solid var(--ink);border-radius:14px;overflow:hidden;background:#0B1424;}
+  #pgCanvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;}
   .pgControls{display:flex;justify-content:space-between;align-items:flex-end;padding:8px calc(14px + env(safe-area-inset-right)) 6px calc(14px + env(safe-area-inset-left));}
   .pgPad{display:flex;gap:10px;}
   .pgBtn{width:62px;height:62px;border-radius:16px;border:3px solid var(--ink);background:rgba(42,55,95,.85);
@@ -179,7 +179,7 @@
 </style>
 </head>
 <body>
-<div class="badge">DESIGN QUEST · PLANNER v9 · Sep 6</div>
+<div class="badge">DESIGN QUEST · PLANNER v10 · Sep 6</div>
 <button class="back" id="backBtn" style="display:none">◀ Back</button>
 <div class="wrap">
 
@@ -1577,7 +1577,7 @@ var PG=(function(){
     // boss attacks
     if(things.boss)stepBoss(things.boss);
     // camera
-    var viewW=cv.clientWidth/scale();
+    var viewW=(cv.clientWidth||stageSize().w)/scale();
     cam=Math.max(0,Math.min(LV[0].length*TILE-viewW, P.x-viewW/2));
     if(LV[0].length*TILE<viewW)cam=0;
   }
@@ -1610,9 +1610,9 @@ var PG=(function(){
   function aabb(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
   var flashT=0;
   function msgFlash(m){ msg=m; flashT=40; }
-  function scale(){ return cv.clientWidth/(10*TILE); }
+  function scale(){ var w=cv.clientWidth||stageSize().w; return w/(10*TILE); }
   function draw(){
-    var W=cv.clientWidth,H=cv.clientHeight; if(flashT>0)flashT--;
+    var W=cv.clientWidth||stageSize().w,H=cv.clientHeight||stageSize().h; if(flashT>0)flashT--;
     ctx.fillStyle="#0B1424"; ctx.fillRect(0,0,W,H);
     ctx.save(); var sc=scale(); ctx.scale(sc,sc); ctx.translate(-cam,0);
     // tiles
@@ -1667,14 +1667,34 @@ var PG=(function(){
     // flash msg
     if(flashT>0){ ctx.font="900 26px sans-serif";ctx.textAlign="center";ctx.fillStyle="#FFD24A";ctx.fillText(msg,W/2,H*0.3);ctx.textAlign="left"; }
   }
+  var engineErr=null;
+  function resetCtx(){ // unwind any leftover save() stack and restore a clean transform (robust to a failed frame)
+    for(var k=0;k<24;k++){ try{ctx.restore();}catch(e){} }
+    var dpr=Math.min(window.devicePixelRatio||1,2); try{ ctx.setTransform(dpr,0,0,dpr,0,0); ctx.globalAlpha=1; ctx.shadowBlur=0; ctx.textAlign="left"; }catch(e){} }
   function loop(now){ if(!running)return;
     if(!lastT)lastT=now; var dt=Math.min(100,now-lastT); lastT=now; acc+=dt; var n=0;
-    while(acc>=1000/60&&n<5){ step(); acc-=1000/60; n++; } if(n===5)acc=0;
-    resize(); draw(); raf=requestAnimationFrame(loop);
+    try{
+      while(acc>=1000/60&&n<5){ step(); acc-=1000/60; n++; } if(n===5)acc=0;
+      resize(); resetCtx(); draw();
+    }catch(err){
+      resetCtx();
+      // keep the loop alive, show it, and file an automatic bug report for Dad (once per demo)
+      if(!engineErr){ engineErr=String(err&&err.message||err);
+        try{ S.reports.push({kind:"bug",screen:"Demo: "+(demo&&demo.title||"?")+" (auto)",text:"Engine error: "+engineErr,t:Date.now()}); save(); }catch(e2){}
+      }
+      try{ resize(); ctx.fillStyle="#0B1424"; ctx.fillRect(0,0,cv.clientWidth,cv.clientHeight); ctx.fillStyle="#FF8A8A"; ctx.font="900 14px sans-serif"; ctx.textAlign="center";
+        ctx.fillText("Oops, this demo hit a bug.",cv.clientWidth/2,40); ctx.fillText("Dad got a report automatically!",cv.clientWidth/2,62); ctx.font="11px monospace"; ctx.fillText(engineErr.slice(0,60),cv.clientWidth/2,90); ctx.textAlign="left"; }catch(e3){}
+    }
+    raf=requestAnimationFrame(loop);
   }
-  function resize(){ var dpr=Math.min(window.devicePixelRatio||1,2);
-    if(cv.width!==Math.round(cv.clientWidth*dpr)||cv.height!==Math.round(cv.clientHeight*dpr)){
-      cv.width=cv.clientWidth*dpr; cv.height=cv.clientHeight*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); } }
+  function stageSize(){ var wrap=cv.parentElement; var w=wrap?wrap.clientWidth:cv.clientWidth, h=wrap?wrap.clientHeight:cv.clientHeight;
+    if(!w||w<50) w=Math.max(280,(window.innerWidth||360)-26);
+    if(!h||h<50) h=Math.max(220,Math.floor((window.innerHeight||640)*0.42));
+    return {w:w,h:h}; }
+  function resize(){ var dpr=Math.min(window.devicePixelRatio||1,2); var sz=stageSize();
+    if(cv.clientWidth!==sz.w||cv.clientHeight!==sz.h){ cv.style.width=sz.w+"px"; cv.style.height=sz.h+"px"; }
+    if(cv.width!==Math.round(sz.w*dpr)||cv.height!==Math.round(sz.h*dpr)){
+      cv.width=Math.round(sz.w*dpr); cv.height=Math.round(sz.h*dpr); ctx.setTransform(dpr,0,0,dpr,0,0); } }
   function bindBtn(id,setName){ var b=el(id);
     b.addEventListener("pointerdown",function(e){e.preventDefault();b.setPointerCapture(e.pointerId);b.classList.add("held");
       if(setName==="action"){IN.action=true;IN.actionEdge=true;}else{IN[setName]=true; if(setName==="jump")IN.jumpHeld=true;} });
@@ -1684,7 +1704,7 @@ var PG=(function(){
   var bound=false;
   function fb(){ if(!S.feedback[cat])S.feedback[cat]={}; if(!S.feedback[cat][itemName])S.feedback[cat][itemName]={comment:"",bug:false}; return S.feedback[cat][itemName]; }
   function open(d,category,name,rateCb){
-    demo=d; cat=category; itemName=name; onRate=rateCb;
+    demo=d; cat=category; itemName=name; onRate=rateCb; engineErr=null;
     if(!S.ratings[cat])S.ratings[cat]={};
     cv=el("pgCanvas"); ctx=cv.getContext("2d");
     el("pgTitle").textContent="Try: "+d.title;
@@ -1708,7 +1728,7 @@ var PG=(function(){
     var mathPanel=el("pgMath"), ctrls=el("pgControls");
     if(d.math){ mathPanel.classList.remove("hidden"); ctrls.classList.add("hidden"); running=false; MATH.start(d.math,mathPanel); return; }
     mathPanel.classList.add("hidden"); ctrls.classList.remove("hidden");
-    setup(); running=true; lastT=0; acc=0; raf=requestAnimationFrame(loop);
+    setup(); resize(); running=true; lastT=0; acc=0; raf=requestAnimationFrame(loop);
   }
   function paintStars(n){ var sp=el("pgStars").querySelectorAll("span"); sp.forEach(function(s){ var v=parseInt(s.getAttribute("data-s"),10); s.textContent=v<=n?"★":"☆"; s.classList.toggle("on",v<=n); }); }
   function close(){ running=false; if(raf)cancelAnimationFrame(raf); raf=null;
