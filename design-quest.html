@@ -136,7 +136,7 @@
   .pgBtn.held{background:var(--accent);}
   .pgBtn.pgJump{width:76px;height:76px;border-radius:50%;background:rgba(79,163,227,.9);}
   .pgBtn.pgAction{width:76px;height:76px;border-radius:50%;background:rgba(255,201,74,.9);color:var(--bg1);font-size:15px;}
-  .pgRate{background:var(--card);border-top:3px solid var(--ink);padding:10px 14px calc(12px + env(safe-area-inset-bottom));text-align:center;}
+  .pgRate{background:var(--card);border-top:3px solid var(--ink);padding:10px 84px calc(12px + env(safe-area-inset-bottom)) 14px;text-align:center;}
   .pgRateQ{font-size:14px;font-weight:800;margin-bottom:4px;}
   .pgStars{font-size:40px;color:#5b6b9c;display:flex;justify-content:center;gap:14px;}
   .pgStars span{cursor:pointer;}
@@ -165,10 +165,21 @@
   .pgMath .mBtn{background:var(--accent);color:#fff;border:3px solid var(--ink);border-radius:12px;font-weight:900;padding:10px 16px;cursor:pointer;}
   .hidden{display:none !important;}
   .mini{font-size:12px;opacity:.65;text-align:center;margin-top:8px;}
+  .tellDadBtn{position:fixed;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:250;width:64px;height:64px;border-radius:50%;
+    background:#E7404A;color:#fff;border:3px solid #fff;font-size:22px;font-weight:900;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    box-shadow:0 5px 14px rgba(0,0,0,.45);cursor:pointer;line-height:1;}
+  .tellDadBtn small{font-size:9px;letter-spacing:.03em;margin-top:2px;}
+  .tdSheet{position:fixed;inset:0;z-index:300;background:rgba(10,18,36,.8);display:flex;align-items:flex-end;justify-content:center;padding:12px;}
+  .tdCard{width:100%;max-width:560px;background:var(--card);border:3px solid var(--ink);border-radius:18px;padding:16px;box-shadow:0 -6px 24px rgba(0,0,0,.5);}
+  .micBtn{flex:0 0 auto;width:46px;height:46px;border-radius:12px;border:3px solid var(--ink);background:var(--accent2);color:var(--bg1);font-size:20px;cursor:pointer;margin-top:8px;}
+  .micBtn.listening{background:#E7404A;color:#fff;animation:pulse .8s infinite;}
+  @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+  .micRow{display:flex;gap:8px;align-items:flex-start;}
+  .micRow input{flex:1;}
 </style>
 </head>
 <body>
-<div class="badge">DESIGN QUEST · PLANNER v8 · Sep 5</div>
+<div class="badge">DESIGN QUEST · PLANNER v9 · Sep 6</div>
 <button class="back" id="backBtn" style="display:none">◀ Back</button>
 <div class="wrap">
 
@@ -373,6 +384,25 @@
   <button class="bigbtn" id="fixitBack">◀ BACK TO MY GAME</button>
 </div>
 
+<!-- TELL DAD (global) -->
+<button class="tellDadBtn" id="tellDadBtn">📣<small>TELL DAD</small></button>
+<div class="tdSheet hidden" id="tdSheet">
+  <div class="tdCard">
+    <div class="q" style="margin-top:0">📣 Tell Dad</div>
+    <div class="mini" id="tdWhere" style="text-align:left;margin:0 0 8px;"></div>
+    <div class="chips" id="tdKind">
+      <div class="chip sel" data-k="bug">🐛 Something's wrong</div>
+      <div class="chip" data-k="idea">💡 I want something</div>
+    </div>
+    <input type="text" id="tdText" placeholder="🎤 What's missing or broken?">
+    <div class="row" style="margin-top:10px;">
+      <button class="bigbtn ghost" id="tdCancel">Cancel</button>
+      <button class="bigbtn" id="tdSend">SEND ✔</button>
+    </div>
+    <div class="mini" id="tdCount" style="margin-top:8px;"></div>
+  </div>
+</div>
+
 <!-- PLAYGROUND OVERLAY -->
 <div id="pgOverlay" class="pgOverlay hidden">
   <div class="pgTop">
@@ -445,7 +475,7 @@ var PURE = {
   ],
   CHALLENGE_Q: [
     {k:"enemies", q:"What are the ENEMIES like?", opts:["shadow blobs","robot bugs","grumpy slimes","flying bats","spiky balls","ghost critters"], multi:true},
-    {k:"powers", q:"What POWERS can you get?", opts:["super high jump","double jump","super dash","glide/fly","ground smash","shoot fireballs","force shield","climb walls","swim fast"], multi:true},
+    {k:"powers", q:"What POWERS can you get?", opts:["super high jump","double jump","super dash","glide/fly","ground smash","rock smash","freeze enemies","shoot fireballs","force shield","climb walls","swim fast"], multi:true},
     {k:"hazards", q:"What TRAPS are in the levels?", opts:["spikes","pits","lava","spinny saws","crushers","moving floors","slippery ice","dark rooms"], multi:true}
   ],
   BOSS_ATTACKS: ["charges at you","big jumps","throws stuff","splits in two","stomps the ground","spins fast","shoots beams","calls helpers"],
@@ -476,6 +506,7 @@ var PURE = {
       friends:{robotName:"",robotDoes:null,friendName:"",friendWho:null,petName:"",petDoes:null,notes:""},
       sequel:{where:null,newPower:null,newBoss:null,start:null,notes:""},
       fixit:{notes:""},
+      reports:[],
       ideaRatings:{}, ideaComments:{},
       learn:{want:null,kinds:[],systems:[],notes:""},
       dream:{cool:"",add:"",secret:""},
@@ -489,6 +520,8 @@ var PURE = {
     "super dash":{title:"Super Dash",tip:"Tap DASH to zoom across the big gap!",power:"dash",action:"DASH",scene:"gap"},
     "glide/fly":{title:"Glide",tip:"Jump, then HOLD jump to float slowly across!",power:"glide",scene:"pit"},
     "ground smash":{title:"Ground Smash",tip:"Jump up, then tap SMASH to break the block!",power:"smash",action:"SMASH",scene:"block"},
+    "rock smash":{title:"Rock Smash",tip:"Jump up, then tap ROCK SMASH to turn into a rock and CRUSH everything under you!",power:"rocksmash",action:"ROCK SMASH",scene:"rockyard"},
+    "freeze enemies":{title:"Freeze",tip:"Tap FREEZE to freeze every enemy near you. Then walk right past them!",power:"freeze",action:"FREEZE",scene:"twoEnemies"},
     "shoot fireballs":{title:"Fireball",tip:"Tap FIRE to shoot the target!",power:"fireball",action:"FIRE",scene:"target"},
     "force shield":{title:"Force Shield",tip:"Tap SHIELD to be safe, then walk over the spikes!",power:"shield",action:"SHIELD",scene:"spikes"},
     "climb walls":{title:"Wall Climb",tip:"Jump at the wall and hold toward it to climb up!",power:"wall_climb",scene:"wall"},
@@ -533,7 +566,9 @@ var PURE = {
     {id:"pieces",title:"NEW: The Magic Pieces",desc:"What ARE they? How many? What happens when you get them all?",nav:"scr-journey",emoji:"💎"},
     {id:"mathGames",title:"NEW: Math you can PLAY",desc:"Share the treasure and collect in groups. Play them and rate them!",nav:"scr-learn",emoji:"🎮"},
     {id:"sequel",title:"NEW: The Sequel",desc:"You asked for a sequel. Now plan it! Where, what's new, who's the boss?",nav:"scr-sequel",emoji:"🌍"},
-    {id:"fixit",title:"NEW: Fix-It Notes",desc:"You're the tester. Every bug you flag shows up here for Dad.",nav:"scr-fixit",emoji:"🐛"}
+    {id:"fixit",title:"NEW: Fix-It Notes",desc:"You're the tester. Every bug you flag shows up here for Dad.",nav:"scr-fixit",emoji:"🐛"},
+    {id:"freezeRock",title:"NEW: Freeze & Rock Smash",desc:"You said they were missing. Now they're real! Go play them.",nav:"scr-challenge",emoji:"🧊"},
+    {id:"tellDad",title:"NEW: The TELL DAD button",desc:"See the red button in the corner? Tap it ANYWHERE to say what's missing or broken.",nav:"scr-hub",emoji:"📣"}
   ],
   // what he hasn't played/rated yet — so Dad gets ALL the answers
   untried:function(S){
@@ -630,6 +665,7 @@ var PURE = {
     if(!d.sequel)d.sequel={where:null,newPower:null,newBoss:null,start:null,notes:""};
     if(!d.fixit)d.fixit={notes:""};
     if(!d.ideaRatings)d.ideaRatings={}; if(!d.ideaComments)d.ideaComments={};
+    if(!Array.isArray(d.reports))d.reports=[];
     return d;
   },
   hasBody:function(parts){ for(var i=0;i<parts.length;i++){ if(this.BODY_TYPES.indexOf(parts[i].t)>=0) return true; } return false; },
@@ -660,7 +696,12 @@ var PURE = {
     L.push("==================================");
     L.push("(A fresh plan he built himself. Use this to build the game.)");
     L.push("");
-    // BUGS + COMMENTS FIRST — he is the tester
+    // TELL-DAD REPORTS FIRST — what's missing/wrong in the TOOL or the game, with where he was
+    L.push("📣 TELL DAD (his reports from the button, newest first)");
+    if(S.reports.length){ S.reports.slice().reverse().forEach(function(r){ L.push("  "+(r.kind==="bug"?"🐛":"💡")+" ["+(r.screen||"?")+"] "+r.text); }); }
+    else L.push("  (no reports yet)");
+    L.push("");
+    // BUGS + COMMENTS — he is the tester
     var cm=PURE.comments(S);
     var bugs=cm.filter(function(c){return c.bug;}), notes=cm.filter(function(c){return !c.bug;});
     L.push("🐛 BUGS HE FOUND (fix these!)");
@@ -977,7 +1018,7 @@ function refreshHub(){
   ["hero","world","journey","challenge","dream","learn","friends","sequel"].forEach(function(k){
     document.getElementById("prog-"+k).textContent=PURE.progIcon(pr[k],S.done[k]);
   });
-  var nb=PURE.comments(S).filter(function(c){return c.bug;}).length;
+  var nb=PURE.comments(S).filter(function(c){return c.bug;}).length + S.reports.length;
   document.getElementById("prog-fixit").textContent=nb?("🐛"+nb):"○";
   var ratedIdeas=PURE.NEW_IDEAS.filter(function(it){return S.ideaRatings[it.id]>0;}).length, totIdeas=PURE.NEW_IDEAS.length;
   document.getElementById("prog-new").textContent= ratedIdeas>=totIdeas?"✅":(ratedIdeas+"/"+totIdeas);
@@ -1009,7 +1050,7 @@ function refreshHub(){
   sheet.appendChild(row("Team", [S.friends.robotName?("🤖 "+S.friends.robotName):"",S.friends.friendName?("🧑 "+S.friends.friendName):"",S.friends.petName?("🐾 "+S.friends.petName):""].filter(Boolean).join(", "), "no team yet"));
   sheet.appendChild(row("Brain", S.learn.want?(S.learn.want+(S.learn.kinds.length?" ("+S.learn.kinds.length+" math)":"")):"", "not picked yet"));
   sheet.appendChild(row("Sequel", [S.sequel.where,S.sequel.newBoss].filter(Boolean).join(" · "), "not planned yet"));
-  var nbugs=PURE.comments(S).filter(function(c){return c.bug;}).length;
+  var nbugs=PURE.comments(S).filter(function(c){return c.bug;}).length + S.reports.length;
   sheet.appendChild(row("Bugs", nbugs?(nbugs+" flagged for Dad 🐛"):"", "none found yet"));
 }
 
@@ -1252,6 +1293,16 @@ function refreshFixit(){
     d.innerHTML='<div class="st">🐛 '+c.name+'</div><div style="font-size:14px;">'+(c.comment||"(no details yet — go back and say what's wrong!)")+'</div>';
     list.appendChild(d);
   });
+  if(S.reports.length){
+    var h=document.createElement("div"); h.className="q"; h.textContent="📣 Things you told Dad with the button:"; list.appendChild(h);
+    S.reports.slice().reverse().forEach(function(r,i){
+      var d=document.createElement("div"); d.className="scene"; d.style.display="flex"; d.style.alignItems="center"; d.style.gap="8px";
+      var t=document.createElement("div"); t.style.flex="1"; t.innerHTML='<div class="st">'+(r.kind==="bug"?"🐛":"💡")+' '+r.screen+'</div><div style="font-size:14px;">'+r.text+'</div>';
+      var x=document.createElement("button"); x.className="tryBtn"; x.style.background="var(--soft)"; x.style.color="var(--ink)"; x.textContent="✕";
+      x.addEventListener("click",function(){ var idx=S.reports.length-1-i; S.reports.splice(idx,1); save(); refreshFixit(); refreshHubQuiet(); });
+      d.appendChild(t); d.appendChild(x); list.appendChild(d);
+    });
+  }
   bindText("fixitNotes",function(){return S.fixit.notes;},function(v){S.fixit.notes=v;});
 }
 
@@ -1305,6 +1356,55 @@ function renderDadCheck(){
   if(!allDone){ var n=document.createElement("div"); n.className="mini"; n.style.marginTop="8px"; n.textContent="It's OK to send it anyway. But the more you try, the better Dad can build it!"; box.appendChild(n); }
 }
 
+// ---------- TELL DAD (global report button) ----------
+var TD_KIND="bug";
+var SCREEN_NAMES={"scr-hub":"Home","scr-new":"What's New","scr-hero":"The Hero","scr-world":"The World","scr-journey":"The Journey","scr-friends":"Friends & Helpers","scr-challenge":"The Challenges","scr-dream":"Your Dream","scr-learn":"Brain Boosts","scr-sequel":"The Sequel","scr-fixit":"Fix-It Notes","scr-dad":"For Dad"};
+function tdWhere(){ var pg=document.getElementById("pgOverlay"); var inDemo=pg&&!pg.classList.contains("hidden");
+  return inDemo ? ("Demo: "+document.getElementById("pgTitle").textContent.replace("Try: ","")) : (SCREEN_NAMES[current]||current); }
+document.getElementById("tellDadBtn").addEventListener("click",function(){
+  document.getElementById("tdWhere").textContent="You're in: "+tdWhere();
+  document.getElementById("tdText").value="";
+  document.getElementById("tdCount").textContent=S.reports.length?("Dad has "+S.reports.length+" of your reports already."):"";
+  document.getElementById("tdSheet").classList.remove("hidden");
+  setTimeout(function(){ document.getElementById("tdText").focus(); },50);
+});
+document.querySelectorAll("#tdKind .chip").forEach(function(c){ c.addEventListener("click",function(){
+  TD_KIND=c.getAttribute("data-k"); document.querySelectorAll("#tdKind .chip").forEach(function(x){x.classList.remove("sel");}); c.classList.add("sel"); }); });
+document.getElementById("tdCancel").addEventListener("click",function(){ document.getElementById("tdSheet").classList.add("hidden"); });
+document.getElementById("tdSend").addEventListener("click",function(){
+  var txt=document.getElementById("tdText").value.trim(); if(!txt){ document.getElementById("tdText").placeholder="Say something first! 🎤"; return; }
+  S.reports.push({kind:TD_KIND,screen:tdWhere(),text:txt,t:Date.now()}); save();
+  document.getElementById("tdSheet").classList.add("hidden"); confetti(); refreshHubQuiet();
+  if(current==="scr-fixit")refreshFixit();
+});
+
+// ---------- IN-APP MIC (Web Speech API; keyboard mic may be blocked on his iPad) ----------
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition||null;
+function attachMics(){
+  if(!SR)return;
+  document.querySelectorAll('input[type=text]').forEach(function(inp){
+    if(inp._mic)return; inp._mic=true;
+    var wrap=document.createElement("div"); wrap.className="micRow";
+    inp.parentNode.insertBefore(wrap,inp); wrap.appendChild(inp);
+    var b=document.createElement("button"); b.className="micBtn"; b.textContent="🎤"; b.type="button"; b.title="Talk";
+    wrap.appendChild(b);
+    var rec=null;
+    b.addEventListener("click",function(){
+      if(rec){ try{rec.stop();}catch(e){} rec=null; b.classList.remove("listening"); return; }
+      try{
+        rec=new SR(); rec.lang="en-US"; rec.interimResults=false; rec.maxAlternatives=1;
+        rec.onresult=function(ev){ var t=ev.results[0][0].transcript; inp.value=(inp.value?inp.value+" ":"")+t; inp.dispatchEvent(new Event("input",{bubbles:true})); };
+        rec.onend=function(){ b.classList.remove("listening"); rec=null; };
+        rec.onerror=function(){ b.classList.remove("listening"); rec=null; inp.placeholder="Mic didn't work here. Type it, or ask Dad to turn on Dictation."; };
+        rec.start(); b.classList.add("listening");
+      }catch(e){ b.classList.remove("listening"); rec=null; }
+    });
+  });
+}
+var _origShow=show;
+show=function(id){ _origShow(id); attachMics(); };
+attachMics();
+
 // ---------- DAD ----------
 function showDad(){ renderDadCheck(); document.getElementById("dadText").textContent=PURE.summary(S); show("scr-dad"); }
 document.getElementById("dadBtn").addEventListener("click",showDad);
@@ -1347,6 +1447,8 @@ var PG=(function(){
       else if(d.scene==="gap"){ for(var x=6;x<=12;x++){g[7][x]=".";g[8][x]=".";} }
       else if(d.scene==="pit"){ for(var x=5;x<=13;x++){g[7][x]=".";g[8][x]=".";} }
       else if(d.scene==="block"){ g[6][9]="B"; g[6][10]="B"; }
+      else if(d.scene==="rockyard"){ g[6][8]="B"; g[6][9]="B"; g[6][10]="B"; g[5][9]="B"; things.enemies.push({x:13*TILE,y:6*TILE,w:30,h:30,vx:-1.0,alive:true,beh:"patrol",ph:0,baseY:6*TILE}); }
+      else if(d.scene==="twoEnemies"){ things.enemies.push({x:9*TILE,y:6*TILE,w:30,h:30,vx:-1.2,alive:true,beh:"patrol",ph:0,baseY:6*TILE}); things.enemies.push({x:13*TILE,y:6*TILE,w:30,h:30,vx:1.2,alive:true,beh:"patrol",ph:0,baseY:6*TILE}); g[6][16]="S"; }
       else if(d.scene==="target"){ things.targets.push({x:15*TILE,y:6*TILE,hit:false}); }
       else if(d.scene==="spikes"){ for(var x=8;x<=12;x++)g[6][x]="^"; }
       else if(d.scene==="wall"){ for(var y=2;y<=6;y++){g[y][12]="#";} }
@@ -1411,6 +1513,8 @@ var PG=(function(){
       else if(parts2.power==="rock"){ parts2.rock=parts2.rock>0?0:120; if(parts2.rock)msgFlash("ROCK!"); }
       else if(parts2.power==="iceform"){ parts2.ice=parts2.ice>0?0:150; if(parts2.ice){P.vx=P.face*8;msgFlash("ICE!");} }
       else if(parts2.power==="smash"&&!P.onG){ P.vy=14; parts2.smashing=true; }
+      else if(parts2.power==="rocksmash"&&!P.onG){ P.vy=16; parts2.smashing=true; parts2.rock=45; msgFlash("ROCK SMASH!"); }
+      else if(parts2.power==="freeze"){ var n=0; things.enemies.forEach(function(e){ if(e.alive&&Math.abs(e.x-P.x)<6*TILE){ e.frozen=180; n++; } }); msgFlash(n?"FROZEN!":"nobody close!"); }
       else if(parts2.power==="fireball"){ things.projectiles.push({x:P.x+P.w/2,y:P.y+P.h/2,vx:P.face*8,life:60}); }
       else if(parts2.power==="shield"){ parts2.shield=90; }
     }
@@ -1432,7 +1536,9 @@ var PG=(function(){
     // smash breaks block on contact
     if(parts2.smashing){ var bc=solid(P.x+P.w/2,P.y+P.h+2);
       var tx=Math.floor((P.x+P.w/2)/TILE),ty=Math.floor((P.y+P.h+2)/TILE);
-      if(LV[ty]&&LV[ty][tx]==="B"){ LV[ty][tx]="."; P.vy=-6; parts2.smashing=false; msgFlash("SMASH!"); } }
+      if(LV[ty]&&LV[ty][tx]==="B"){
+        if(parts2.power==="rocksmash"){ for(var dx=-1;dx<=1;dx++){ if(LV[ty]&&LV[ty][tx+dx]==="B")LV[ty][tx+dx]="."; } P.vy=6; msgFlash("CRUSH!"); }
+        else { LV[ty][tx]="."; P.vy=-6; parts2.smashing=false; msgFlash("SMASH!"); } } }
     // hazards from grid
     var hz=[[P.x+P.w/2,P.y+P.h-1],[P.x+P.w/2,P.y+2]];
     for(var i=0;i<hz.length;i++){ var c=solid(hz[i][0],hz[i][1]); if(c==="^"||c==="L"){ if(parts2.shield<=0&&!(parts2.rock>0))hurt(); } }
@@ -1443,14 +1549,16 @@ var PG=(function(){
     things.projectiles=things.projectiles.filter(function(p){return p.life>0;});
     // enemies
     things.enemies.forEach(function(e){ if(!e.alive)return; e.ph+=0.1;
-      if(e.beh==="patrol"||e.beh==="fast"){ var ax=e.vx>0?e.x+e.w+2:e.x-2;
+      if(e.frozen>0){ e.frozen--; }
+      else if(e.beh==="patrol"||e.beh==="fast"){ var ax=e.vx>0?e.x+e.w+2:e.x-2;
         if(isWall(solid(ax,e.y+e.h/2))||solid(ax,e.y+e.h+6)===".")e.vx=-e.vx; e.x+=e.vx; }
-      else if(e.beh==="float"){ e.x+=e.vx; e.y=e.baseY-Math.sin(e.ph)*22; if(e.x<3*TILE||e.x>15*TILE)e.vx=-e.vx; }
-      else if(e.beh==="swoop"){ e.x+=e.vx; e.y=e.baseY-40+Math.sin(e.ph*1.5)*30; if(e.x<3*TILE||e.x>15*TILE)e.vx=-e.vx; }
+      else if(e.beh==="float"&&!(e.frozen>0)){ e.x+=e.vx; e.y=e.baseY-Math.sin(e.ph)*22; if(e.x<3*TILE||e.x>15*TILE)e.vx=-e.vx; }
+      else if(e.beh==="swoop"&&!(e.frozen>0)){ e.x+=e.vx; e.y=e.baseY-40+Math.sin(e.ph*1.5)*30; if(e.x<3*TILE||e.x>15*TILE)e.vx=-e.vx; }
       var eb={x:e.x+3,y:e.y+3,w:e.w-6,h:e.h-6};
       var bop={x:P.face>0?P.x+P.w-4:P.x-30,y:P.y-4,w:34,h:P.h+8};
       if(IN.action&&aabb(bop,eb)&&!e.spiky){e.alive=false;msgFlash("BOP!");return;}
       if(aabb(P,eb)){ var stomp=P.vy>1&&(P.y+P.h)<(e.y+e.h*0.6);
+        if(e.frozen>0){ e.alive=false; msgFlash("SHATTER!"); return; }
         if(stomp&&!e.spiky){e.alive=false;P.vy=-7;msgFlash("SQUISH!");}
         else if(parts2.rock>0){e.alive=false;msgFlash("CRUSHED!");}
         else hurt(); }
@@ -1528,7 +1636,8 @@ var PG=(function(){
     if(things.beam){ ctx.fillStyle="rgba(240,96,46,.8)"; ctx.fillRect(cam,things.beam,cv.clientWidth/sc,8); }
     // enemies
     things.enemies.forEach(function(e){ if(!e.alive)return;
-      ctx.fillStyle=e.spiky?"#F0602E":"#4A3568"; ctx.beginPath(); ctx.arc(e.x+e.w/2,e.y+e.h/2,e.w/2,0,6.29); ctx.fill();
+      ctx.fillStyle=e.frozen>0?"#BFEBFF":(e.spiky?"#F0602E":"#4A3568"); ctx.beginPath(); ctx.arc(e.x+e.w/2,e.y+e.h/2,e.w/2,0,6.29); ctx.fill();
+      if(e.frozen>0){ ctx.strokeStyle="#fff"; ctx.lineWidth=2; ctx.strokeRect(e.x-2,e.y-2,e.w+4,e.h+4); }
       if(e.spiky){ctx.fillStyle="#FFC24A";for(var i=0;i<8;i++){var a=i/8*6.29;ctx.beginPath();ctx.moveTo(e.x+e.w/2+Math.cos(a)*e.w/2,e.y+e.h/2+Math.sin(a)*e.h/2);ctx.lineTo(e.x+e.w/2+Math.cos(a)*e.w/2*1.4,e.y+e.h/2+Math.sin(a)*e.h/2*1.4);ctx.lineTo(e.x+e.w/2+Math.cos(a+0.3)*e.w/2,e.y+e.h/2+Math.sin(a+0.3)*e.h/2);ctx.fill();}}
       ctx.fillStyle="#fff";ctx.fillRect(e.x+8,e.y+10,6,6);ctx.fillRect(e.x+e.w-14,e.y+10,6,6); });
     // boss
